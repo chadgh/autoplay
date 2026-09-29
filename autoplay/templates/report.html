@@ -80,6 +80,7 @@ th, td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--bor
 th:first-child, td:first-child { text-align: left; }
 th { color: var(--text-secondary); font-weight: 600; }
 .warn { background: var(--warn-bg); color: var(--warn-text); border-radius: 10px; padding: 12px 16px; margin-top: 12px; font-size: 14px; }
+details.warn[open] > summary { margin-bottom: 4px; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .chips span, .chips a { text-decoration: none; border: 1px solid currentColor; border-radius: 999px; padding: 1px 10px; font-size: 13px; }
 a { color: inherit; }
@@ -261,8 +262,9 @@ if (R.deck.off_identity && R.deck.off_identity.length) {
   document.getElementById("untagged").append(w);
 }
 if (R.deck.untagged.length) {
-  const w = el("div", {class: "warn"});
-  w.append(el("strong", {}, `${R.deck.untagged.length} cards have text the simulator doesn't understand`),
+  const w = el("details", {class: "warn"}), summary = el("summary");
+  summary.append(el("strong", {}, `${R.deck.untagged.length} cards have text the simulator doesn't understand`));
+  w.append(summary,
            el("div", {}, "They're played as plain cards: cast for their cost, but their abilities do nothing. Add them to an overrides file to model them."));
   const chips = el("div", {class: "chips"});
   R.deck.untagged.forEach((n) => chips.append(cardLink(n)));
