@@ -82,6 +82,7 @@ class Game:
         for card in self.pilot.bottom(self.hand, to_bottom):
             self.hand.remove(card)
             self.library.append(card)
+            self.record.bottomed.append(card.name)
         self.record.mulligans = mulligans
         self.record.note_opening_hand(self.hand)
         for card in self.hand:
@@ -119,7 +120,9 @@ class Game:
         for _ in range(n):
             if not self.library:
                 return
-            self._to_hand(self.library.pop(0))
+            card = self.library.pop(0)
+            self._to_hand(card)
+            self.record.note("drawn", card.name)
 
     # ------------------------------------------------------------ actions
 
@@ -128,6 +131,7 @@ class Game:
         self.hand.remove(card)
         self.lands_played += 1
         self.record.mark_land_drop()
+        self.record.note("played", {"card": card.name, "how": "land"})
         if card.tags.get("fetch"):
             self.graveyard.append(card)
             self._search_lands(card)
@@ -155,6 +159,7 @@ class Game:
         for i in sorted(paid, reverse=True):
             self.pool.pop(i)
         self.spent += cost.total
+        self.record.note("played", {"card": card.name, "how": "commander" if card.is_commander else "cast", "cost": cost.total})
         if card.is_commander:
             self.command.remove(card)
             self.casts[id(card)] = self.casts.get(id(card), 0) + 1
@@ -192,6 +197,7 @@ class Game:
                     self.library.insert(0, target)
                 else:
                     self._to_hand(target)
+                self.record.note("searched", {"card": target.name, "to": "library top" if t.get("tutor_top") else "hand"})
         if t.get("draw"):
             self.draw(t["draw"])
         self._deal(t.get("burn", 0), t.get("drain", 0))
@@ -205,6 +211,7 @@ class Game:
                     break
                 choice = self.pilot.choose_search_land(self, found)
                 self.library.remove(choice)
+                self.record.note("searched", {"card": choice.name, "to": "battlefield" if dest == "bf" else "hand"})
                 if dest == "bf":
                     self._enter_land(choice, tapped=bool(t.get("land_bf_tapped") or choice.tags.get("tapped_land")))
                 else:
@@ -220,6 +227,7 @@ class Game:
 
     def take_turn(self) -> None:
         self.turn += 1
+        self.record.begin_turn(self.turn, self.hand)
         self.lands_played = 0
         self.land_drops = 1 + sum(p.card.tags.get("extra_land", 0) for p in self.battlefield if p.card.is_permanent)
         self.spent = 0
@@ -244,6 +252,7 @@ class Game:
             for card in self.pilot.discard(self, excess):
                 self.hand.remove(card)
                 self.graveyard.append(card)
+                self.record.note("discarded", card.name)
         self._record_turn()
 
     def _combat(self) -> None:

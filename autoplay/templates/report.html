@@ -72,6 +72,8 @@ h3 { font-size: 14px; margin: 0 0 2px; font-weight: 600; }
 .legend span::before { content: ""; display: inline-block; width: 16px; height: 2px; vertical-align: middle; margin-right: 6px; background: var(--c); }
 details { margin-top: 8px; font-size: 13px; color: var(--text-secondary); }
 summary { cursor: pointer; }
+details.playthrough { font-size: inherit; color: inherit; }
+details.playthrough > summary { color: var(--text-secondary); font-size: 14px; margin-bottom: 12px; }
 .table-wrap { overflow-x: auto; }
 table { border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; width: 100%; }
 th, td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
@@ -87,19 +89,74 @@ a { color: inherit; }
 .hand { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 136px), 1fr)); gap: 12px; margin-top: 12px; }
 .hand a { display: block; text-decoration: none; font-size: 13px; text-align: center; overflow-wrap: anywhere; }
 .hand a:hover span { text-decoration: underline; }
+.hero { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+.hero-text { flex: 1 1 280px; min-width: 0; }
+.commander-art { display: flex; gap: 12px; }
+.commander-art a { display: block; width: min(200px, 42vw); padding: 5px; border-radius: 14px; background: var(--frame); }
+.commander-art img { display: block; width: 100%; aspect-ratio: 488 / 680; object-fit: cover; border-radius: 4.75% / 3.5%; background: var(--grid); }
+.identity { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 8px; }
+.pip { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; padding: 3px 12px 3px 3px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-1); }
+.pip b { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; background: var(--c); color: var(--on); box-shadow: inset 0 0 0 1px rgba(0,0,0,.25); }
+.log { display: grid; grid-template-columns: 60px 1fr auto; font-size: 13px; }
+.log > div { padding: 10px 16px 10px 0; border-bottom: 1px solid var(--border); min-width: 0; }
+.log > div.stats { padding-right: 0; }
+.log > div:nth-last-child(-n+3) { border-bottom: 0; }
+.log .turn { font-weight: 650; font-size: 15px; font-variant-numeric: tabular-nums; }
+.log .stats { color: var(--text-muted); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.log .events { display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: start; }
+.log .label { color: var(--text-muted); font-size: 12px; margin-bottom: 6px; }
+.thumbs { display: flex; flex-wrap: wrap; gap: 8px; }
+.thumb { position: relative; display: block; width: 76px; text-decoration: none; font-size: 11px; line-height: 1.3; color: var(--text-secondary); }
+.thumb img { display: block; width: 100%; aspect-ratio: 488 / 680; object-fit: cover; border-radius: 4px; background: var(--grid);
+             outline: 2px solid var(--ring, transparent); outline-offset: 1px; }
+.thumb span { display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.thumb:hover span { text-decoration: underline; }
+.thumb .badge { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px;
+                display: grid; place-items: center; font-size: 11px; background: var(--ring); color: #fff; }
+.thumb.mini { width: 40px; }
+.thumb.mini img { border-radius: 2px; }
+.hand-now { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed var(--border); }
+.hand-now .thumbs { gap: 4px; }
+.thumb.land { --ring: var(--text-muted); }
+.thumb.spell { --ring: var(--series-1); }
+.thumb.cmdr { --ring: var(--series-2); }
+.thumb.cmdr span { color: var(--series-2); font-weight: 600; }
+#card-preview { position: fixed; z-index: 10; width: 250px; max-width: calc(100vw - 16px); pointer-events: none; display: none;
+                border-radius: 12px; box-shadow: 0 8px 28px rgba(0,0,0,.35); }
+@media (max-width: 560px) {
+  .log { grid-template-columns: 44px 1fr; }
+  .log .turn { grid-row: span 2; }
+  .log .stats { grid-column: 2; text-align: left; padding-top: 0; white-space: normal; }
+  .log > div.events-cell { border-bottom: 0; padding-bottom: 4px; }
+  .log > div:nth-last-child(-n+3) { border-bottom: 1px solid var(--border); }
+  .log > div:nth-last-child(3), .log > div:last-child { border-bottom: 0; }
+}
 .hand img { display: block; width: 100%; aspect-ratio: 488 / 680; object-fit: cover; border-radius: 4.75% / 3.5%; background: var(--grid); margin-bottom: 6px; }
 </style>
 </head>
 <body>
 <main>
-  <h1 id="title"></h1>
-  <p class="sub" id="subtitle"></p>
-  <p class="muted" id="settings"></p>
+  <header class="hero">
+    <div class="commander-art" id="commander-art"></div>
+    <div class="hero-text">
+      <h1 id="title"></h1>
+      <p class="sub" id="subtitle"></p>
+      <div class="identity" id="identity"></div>
+      <p class="muted" id="settings"></p>
+    </div>
+  </header>
   <div class="tiles" id="tiles"></div>
   <div id="untagged"></div>
 
   <h2>Average opening hand</h2>
   <div class="card" id="average-hand"></div>
+
+  <h2>First game, turn by turn</h2>
+  <p class="muted" id="first-game-summary"></p>
+  <details class="playthrough">
+    <summary>Show the playthrough</summary>
+    <div class="card" id="first-game"></div>
+  </details>
 
   <h2>Mana</h2>
   <div class="grid" id="mana-charts"></div>
@@ -120,6 +177,7 @@ a { color: inherit; }
   <div class="grid" id="shuffle-charts"></div>
 </main>
 
+<img id="card-preview" alt="">
 <script id="data" type="application/json">{{ data_json }}</script>
 <script>
 const R = JSON.parse(document.getElementById("data").textContent);
@@ -140,14 +198,40 @@ const cardLink = (name) => el("a", {
   href: links[name] || "https://scryfall.com/search?q=" + encodeURIComponent(`!"${name}"`),
   target: "_blank", rel: "noopener",
 }, name);
+const images = R.deck.images || {};
+const imageFor = (name) => images[name] ||
+  "https://api.scryfall.com/cards/named?format=image&version=normal&exact=" + encodeURIComponent(name);
 
 // ---------------------------------------------------------------- header
 document.getElementById("title").textContent = R.deck.name;
 const subtitle = document.getElementById("subtitle");
 R.deck.commanders.forEach((n, i) => subtitle.append(i ? " + " : "", cardLink(n)));
 subtitle.append(` · ${R.deck.size} cards · ${R.deck.lands} lands`);
+
+const MANA = {
+  W: ["White", "#f3e7b0", "#3b3217"], U: ["Blue", "#1e6fc0", "#fff"], B: ["Black", "#2a2523", "#fff"],
+  R: ["Red", "#d3302a", "#fff"], G: ["Green", "#138a4b", "#fff"], C: ["Colorless", "#b9b6ae", "#2a2926"],
+};
+const identity = R.deck.identity && R.deck.identity.length ? R.deck.identity : ["C"];
+const identityBox = document.getElementById("identity");
+identity.forEach((c) => {
+  const [name, bg, fg] = MANA[c];
+  const pip = el("span", {class: "pip", style: `--c:${bg};--on:${fg}`});
+  pip.append(el("b", {}, c), name);
+  identityBox.append(pip);
+});
+// Frame the commander art in its colors: one band per color, left to right in WUBRG order.
+const stops = identity.map((c, i) => `${MANA[c][1]} ${i / identity.length * 100}% ${(i + 1) / identity.length * 100}%`);
+const art = document.getElementById("commander-art");
+art.style.setProperty("--frame", `linear-gradient(90deg, ${stops.join(", ")})`);
+R.deck.commanders.forEach((n) => {
+  const a = cardLink(n);
+  a.textContent = "";
+  a.append(el("img", {src: imageFor(n), alt: n, loading: "eager"}));
+  art.append(a);
+});
 document.getElementById("settings").textContent =
-  `${R.settings.games.toLocaleString()} games × ${T} turns · shuffle: ${R.settings.shuffle}` +
+  `${R.settings.games.toLocaleString()} games × ${T} turns · shuffle: ${R.settings.shuffle} · search shuffle: ${R.settings.search_shuffle}` +
   (R.settings.seed != null ? ` · seed ${R.settings.seed}` : "") + (B ? " · compared against a perfectly random shuffle" : "");
 
 function tile(label, value, cmp) {
@@ -190,9 +274,6 @@ if (R.deck.untagged.length) {
 (function () {
   const A = H.average_hand, box = document.getElementById("average-hand");
   if (!A || !A.cards.length) { box.append(el("div", {class: "muted"}, "No opening hands recorded.")); return; }
-  const images = R.deck.images || {};
-  const imageFor = (name) => images[name] ||
-    "https://api.scryfall.com/cards/named?format=image&version=normal&exact=" + encodeURIComponent(name);
   const P = A.profile, M = A.mean;
   const count = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
   box.append(el("h3", {}, "The most typical hand you keep"),
@@ -210,6 +291,102 @@ if (R.deck.untagged.length) {
     hand.append(a);
   });
   box.append(hand);
+})();
+
+// ---------------------------------------------------------------- first game
+(function () {
+  const G = H.first_game, box = document.getElementById("first-game");
+  if (!G) { box.append(el("div", {class: "muted"}, "No game log recorded.")); return; }
+  const when = (t, what) => (t == null ? `never ${what} by turn ${T}` : `${what} on turn ${t}`);
+  document.getElementById("first-game-summary").textContent =
+    `Game 1 of ${R.settings.games.toLocaleString()} with the human shuffle, exactly as the ${R.settings.pilot} pilot played it: ` +
+    `${when(G.commander_turn, "commander cast")} · ${when(G.kill1_turn, "one opponent dead")} · ` +
+    `${when(G.kill_pod_turn, "table dead")}.`;
+
+  const chip = (name, cls, caption, badge) => {
+    const a = cardLink(name);
+    a.textContent = "";
+    a.className = "thumb" + (cls ? " " + cls : "");
+    a.title = name;
+    a.append(el("img", {src: imageFor(name), alt: name, loading: "lazy"}));
+    if (badge != null) a.append(el("b", {class: "badge"}, String(badge)));
+    a.append(el("span", {}, caption || name));
+    return a;
+  };
+  const log = el("div", {class: "log"});
+  const mini = (name) => {
+    const a = chip(name, "mini");
+    a.querySelector("span").remove();
+    return a;
+  };
+  const row = (label, events, stats, hand) => {
+    const cell = el("div", {class: "events-cell"});
+    if (hand) {
+      const now = el("div", {class: "hand-now"}), c = el("div", {class: "thumbs"});
+      hand.forEach((n) => c.append(mini(n)));
+      now.append(el("div", {class: "label"}, hand.length ? `Hand (${hand.length})` : "Hand: empty"), c);
+      cell.append(now);
+    }
+    const ev = el("div", {class: "events"});
+    for (const [name, chips] of events) {
+      if (!chips.length) continue;
+      const group = el("div"), c = el("div", {class: "thumbs"});
+      chips.forEach((x) => c.append(x));
+      group.append(el("div", {class: "label"}, name), c);
+      ev.append(group);
+    }
+    if (!ev.children.length) ev.append(el("div", {class: "label"}, "Nothing"));
+    cell.append(ev);
+    log.append(el("div", {class: "turn"}, label), cell, el("div", {class: "stats"}, stats));
+  };
+
+  const mull = G.mulligans ? `${G.mulligans} mulligan${G.mulligans === 1 ? "" : "s"}` : "no mulligan";
+  row("T0", [
+    ["Kept", G.opening_hand.map((n) => chip(n))],
+    ["Bottomed", G.bottomed.map((n) => chip(n))],
+  ], mull);
+  const cls = {land: "land", cast: "spell", commander: "cmdr"};
+  for (const t of G.turns) {
+    row("T" + t.turn, [
+      ["Drew", t.drawn.map((n) => chip(n))],
+      ["Searched", t.searched.map((s) => chip(s.card, "", `→ ${s.to}`))],
+      ["Played", t.played.map((p) => chip(p.card, cls[p.how], "", p.how === "land" ? null : p.cost))],
+      ["Discarded", t.discarded.map((n) => chip(n))],
+    ], `${t.lands} land${t.lands === 1 ? "" : "s"} · ${t.spent}/${t.mana} mana · ${t.damage} dmg`, t.hand);
+  }
+  box.append(log);
+  const legend = el("div", {class: "legend"});
+  legend.append(el("span", {style: `--c:${css("--series-1")}`}, "spell (badge: mana spent)"),
+                el("span", {style: `--c:${css("--series-2")}`}, "commander"),
+                el("span", {style: `--c:${css("--text-muted")}`}, "land"),
+                el("span", {}, "right column: at end of turn, mana spent / available, damage to one opponent"),
+                el("span", {}, "hover a card to enlarge it"));
+  box.append(legend);
+})();
+
+// ---------------------------------------------------------------- hover preview
+(function () {
+  const preview = document.getElementById("card-preview");
+  const place = (e) => {
+    const w = preview.offsetWidth, h = preview.offsetHeight || w * 680 / 488, pad = 16;
+    const x = e.clientX + pad + w > innerWidth ? e.clientX - pad - w : e.clientX + pad;
+    const y = Math.min(Math.max(8, e.clientY - h / 2), innerHeight - h - 8);
+    preview.style.left = Math.max(8, x) + "px";
+    preview.style.top = y + "px";
+  };
+  document.addEventListener("pointerover", (e) => {
+    const t = e.target.closest(".thumb");
+    if (!t || e.pointerType !== "mouse") return;
+    preview.src = t.querySelector("img").src;
+    preview.alt = t.title;
+    preview.style.display = "block";
+    place(e);
+  });
+  document.addEventListener("pointermove", (e) => { if (preview.style.display === "block") place(e); });
+  document.addEventListener("pointerout", (e) => {
+    const t = e.target.closest(".thumb");
+    if (t && !t.contains(e.relatedTarget)) preview.style.display = "none";
+  });
 })();
 
 // ---------------------------------------------------------------- charts

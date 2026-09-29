@@ -105,3 +105,35 @@ def test_average_hand_is_a_typical_kept_hand(result):
     assert hand["profile"]["lands"] == sum(n in {"Forest", "Mountain", "Plains", "Island", "Swamp", "Command Tower",
                                                  "Evolving Wilds", "Temple of Mystery"} for n in names)
     assert abs(hand["profile"]["lands"] - hand["mean"]["lands"]) <= 1
+
+
+def test_search_shuffle_is_configurable(deck):
+    r = simulate(deck, n=5, turns=3, seed=1, baseline=False, search_shuffle="riffle x3, cut")
+    assert r["settings"]["search_shuffle"] == "riffle x3, cut"
+    with pytest.raises(ValueError):
+        simulate(deck, n=1, turns=1, baseline=False, search_shuffle="shimmy")
+
+
+def test_deck_identity_is_in_wubrg_order(deck):
+    r = simulate(deck, n=1, turns=1, seed=1, baseline=False)
+    assert r["deck"]["identity"] == ["W", "U", "B", "R", "G"]  # Kenrith
+
+
+def test_first_game_log_accounts_for_every_card(result):
+    g = result["human"]["first_game"]
+    assert [t["turn"] for t in g["turns"]] == list(range(1, 9))
+    assert len(g["opening_hand"]) == 7 - max(0, g["mulligans"] - 1)
+    # Every card played came from the opening hand or was drawn/searched by then (commanders from the command zone).
+    hand = list(g["opening_hand"])
+    for t in g["turns"]:
+        assert sorted(t["hand"]) == sorted(hand), t["turn"]  # the start-of-turn hand matches the log so far
+        hand += t["drawn"] + [s["card"] for s in t["searched"] if s["to"] == "hand"]
+        for p in t["played"]:
+            if p["how"] != "commander":
+                assert p["card"] in hand, (t["turn"], p["card"])
+                hand.remove(p["card"])
+        for name in t["discarded"]:
+            hand.remove(name)
+        assert len(hand) == t["hand_size"]
+        assert t["lands"] >= 0 and t["spent"] <= t["mana"]
+    assert sum(len(t["drawn"]) for t in g["turns"]) >= 8  # at least one draw per turn

@@ -15,6 +15,7 @@ from .tagger import ROLE_TAGS, is_untagged
 from .tagger_api import TAGS_CACHE_PATH, cached_tags, fetch_tags
 
 DEFAULT_SHUFFLE = "mash x3, riffle x2, cut"
+DEFAULT_SEARCH_SHUFFLE = "mash x2, cut"
 
 
 def _add_deck_args(p: argparse.ArgumentParser) -> None:
@@ -36,9 +37,10 @@ def _load(args):
 
 def cmd_run(args) -> int:
     parse_routine(args.shuffle)  # fail fast on typos
+    parse_routine(args.search_shuffle)
     deck = _load(args)
     result = simulate(
-        deck, n=args.games, turns=args.turns, shuffle=args.shuffle, seed=args.seed,
+        deck, n=args.games, turns=args.turns, shuffle=args.shuffle, search_shuffle=args.search_shuffle, seed=args.seed,
         baseline=not args.no_baseline, draw_first_turn=not args.skip_first_draw, pilot=args.pilot,
     )
     _print_summary(result)
@@ -57,7 +59,8 @@ def _print_summary(r: dict) -> None:
     h, b = r["human"], r.get("random")
     d = r["deck"]
     print(f"{d['name']}: {' + '.join(d['commanders'])}  ({d['size']} cards, {d['lands']} lands)")
-    print(f"{r['settings']['games']} games x {r['settings']['turns']} turns, shuffle: {r['settings']['shuffle']}\n")
+    print(f"{r['settings']['games']} games x {r['settings']['turns']} turns, shuffle: {r['settings']['shuffle']}, "
+          f"search shuffle: {r['settings']['search_shuffle']}\n")
 
     def row(label, hv, bv=None):
         print(f"  {label:<34}{hv:>10}" + (f"{bv:>12}" if bv is not None else ""))
@@ -135,6 +138,8 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("-t", "--turns", type=int, default=10)
     run.add_argument("-s", "--shuffle", default=DEFAULT_SHUFFLE,
                      help=f'shuffle routine, e.g. "pile7, riffle x4, mash x2, cut" (default: "{DEFAULT_SHUFFLE}")')
+    run.add_argument("--search-shuffle", default=DEFAULT_SEARCH_SHUFFLE,
+                     help=f'shuffle routine after a library search (tutors, fetches) (default: "{DEFAULT_SEARCH_SHUFFLE}")')
     run.add_argument("--seed", type=int)
     run.add_argument("--pilot", choices=sorted(PILOTS), default="greedy",
                      help="play strategy; 'landfall' casts landfall cards before the turn's land drop")

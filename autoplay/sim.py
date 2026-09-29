@@ -70,17 +70,21 @@ def simulate(
     n: int = 1000,
     turns: int = 10,
     shuffle: str = "mash x3, riffle x2, cut",
+    search_shuffle: str = "mash x2, cut",
     seed: int | None = None,
     baseline: bool = True,
     pilot: str = "greedy",
     **config_overrides,
 ) -> dict:
     pilot_factory = PILOTS[pilot]
-    config = GameConfig(turns=turns, shuffle=parse_routine(shuffle), **config_overrides)
+    config = GameConfig(
+        turns=turns, shuffle=parse_routine(shuffle), search_shuffle=parse_routine(search_shuffle), **config_overrides
+    )
     result = {
         "deck": {
             "name": deck.name,
             "commanders": [c.name for c in deck.commanders],
+            "identity": [c for c in "WUBRG" if c in deck.identity],
             "size": len(deck.library) + len(deck.commanders),
             "lands": sum(c.is_land for c in deck.library),
             "key_cards": deck.key_cards(),
@@ -90,7 +94,7 @@ def simulate(
             "links": {c.name: c.scryfall_uri for c in deck.commanders + deck.library if c.scryfall_uri},
             "images": {c.name: c.image_uri for c in deck.commanders + deck.library if c.image_uri},
         },
-        "settings": {"games": n, "turns": turns, "shuffle": shuffle, "seed": seed, "pilot": pilot},
+        "settings": {"games": n, "turns": turns, "shuffle": shuffle, "search_shuffle": search_shuffle, "seed": seed, "pilot": pilot},
         "human": run_games(deck, n, config, seed, pilot_factory),
     }
     if baseline:

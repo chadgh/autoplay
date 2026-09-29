@@ -33,6 +33,8 @@ class GameRecord:
     hand: list[int] = field(default_factory=list)
     opening_hand: list[str] = field(default_factory=list)  # kept hand after mulligans, spells by mana value then lands
     opening_profile: dict[str, float] = field(default_factory=dict)
+    bottomed: list[str] = field(default_factory=list)  # sent to the bottom by the London mulligan
+    log: list[dict] = field(default_factory=list)  # one entry per turn: what was drawn, searched, played, discarded
     _drop_this_turn: bool = False
 
     def note_shuffle(self, library: list[Card]) -> None:
@@ -61,6 +63,14 @@ class GameRecord:
             if card.tags.get(role):
                 self.role_seen.setdefault(role, turn)
 
+    def begin_turn(self, turn: int, hand: list[Card]) -> None:
+        self.log.append({"turn": turn, "hand": [c.name for c in hand], "drawn": [], "searched": [], "played": [], "discarded": []})
+
+    def note(self, event: str, entry) -> None:
+        """Add a card name (or a dict describing one) to this turn's `event` list."""
+        if self.log:
+            self.log[-1][event].append(entry)
+
     def mark_land_drop(self) -> None:
         self._drop_this_turn = True
 
@@ -78,6 +88,8 @@ class GameRecord:
         self.damage.append(damage)
         self.pod_damage.append(pod_damage)
         self.hand.append(hand)
+        if self.log:
+            self.log[-1].update(lands=lands, mana=mana, spent=spent, damage=damage, pod_damage=pod_damage, hand_size=hand)
         if kill1 and self.kill1_turn is None:
             self.kill1_turn = turn
         if kill_pod and self.kill_pod_turn is None:
@@ -120,6 +132,18 @@ def _average_hand(records: list[GameRecord]) -> dict:
     }
 
 
+def _game_log(r: GameRecord) -> dict:
+    return {
+        "mulligans": r.mulligans,
+        "opening_hand": r.opening_hand,
+        "bottomed": r.bottomed,
+        "commander_turn": r.commander_turn,
+        "kill1_turn": r.kill1_turn,
+        "kill_pod_turn": r.kill_pod_turn,
+        "turns": r.log,
+    }
+
+
 def aggregate(records: list[GameRecord], turns: int, key_cards: list[str]) -> dict:
     n = len(records)
     mana = _per_turn_mean(records, "mana")
@@ -143,6 +167,7 @@ def aggregate(records: list[GameRecord], turns: int, key_cards: list[str]) -> di
             "hand_size": _per_turn_mean(records, "hand"),
         },
         "average_hand": _average_hand(records),
+        "first_game": _game_log(records[0]),
         "commander_turn": _distribution([r.commander_turn for r in records], turns),
         "kill_turn_1opp": _distribution([r.kill1_turn for r in records], turns),
         "kill_turn_pod": _distribution([r.kill_pod_turn for r in records], turns),
