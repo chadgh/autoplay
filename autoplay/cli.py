@@ -1,4 +1,4 @@
-"""Command line interface: `autoplay run` and `autoplay tags`."""
+"""Command line interface: `autoplay run`, `autoplay tags`, and `autoplay fetch`."""
 
 from __future__ import annotations
 
@@ -7,11 +7,12 @@ import json
 import sys
 from pathlib import Path
 
-from .deck import load_deck
+from .deck import deck_card_data, load_deck
 from .overrides import load_overrides
 from .shuffle import parse_routine
-from .sim import simulate
+from .sim import PILOTS, simulate
 from .tagger import ROLE_TAGS, is_untagged
+from .tagger_api import TAGS_CACHE_PATH, cached_tags, fetch_tags
 
 DEFAULT_SHUFFLE = "mash x3, riffle x2, cut"
 
@@ -21,12 +22,16 @@ def _add_deck_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--overrides", "-o", help="YAML overrides (key cards, tag fixes); defaults to <deck>.yaml if present")
 
 
-def _load(args):
+def _overrides(args):
     ov_path = args.overrides
     if ov_path is None:
         guess = Path(args.deck).with_suffix(".yaml")
         ov_path = guess if guess.exists() else None
-    return load_deck(args.deck, load_overrides(ov_path))
+    return load_overrides(ov_path)
+
+
+def _load(args):
+    return load_deck(args.deck, _overrides(args))
 
 
 def cmd_run(args) -> int:
@@ -34,7 +39,7 @@ def cmd_run(args) -> int:
     deck = _load(args)
     result = simulate(
         deck, n=args.games, turns=args.turns, shuffle=args.shuffle, seed=args.seed,
-        baseline=not args.no_baseline, draw_first_turn=not args.skip_first_draw,
+        baseline=not args.no_baseline, draw_first_turn=not args.skip_first_draw, pilot=args.pilot,
     )
     _print_summary(result)
     if args.json:
@@ -77,6 +82,9 @@ def _print_summary(r: dict) -> None:
         print(f"\n  WARNING: outside {' + '.join(d['commanders'])}'s color identity: {', '.join(d['off_identity'])}")
     if d["untagged"]:
         print(f"\n  {len(d['untagged'])} cards with unmodeled text (played as vanilla): {', '.join(d['untagged'])}")
+    if d["scryfall_tags"]["missing"]:
+        print(f"\n  {len(d['scryfall_tags']['missing'])} cards have no Scryfall Tagger tags cached; "
+              "run `autoplay fetch` on this deck to add them to the report")
 
 
 def cmd_tags(args) -> int:
@@ -94,6 +102,26 @@ def cmd_tags(args) -> int:
         cmd = " [COMMANDER]" if card.is_commander else ""
         colors = "".join(sorted(card.mana_colors)) if card.tags.get("mana") or card.tags.get("ritual") else ""
         print(f"{card.name:<40} {tag_str}{' mana=' + colors if colors else ''}  ({', '.join(roles)}){cmd}{key}{flag}")
+        if card.name in deck.scryfall_tags:
+            print(f"{'':<40} scryfall: {', '.join(deck.scryfall_tags[card.name]['tags']) or '-'}")
+    return 0
+
+
+def cmd_fetch(args) -> int:
+    _, data = deck_card_data(args.deck, _overrides(args))
+    have = cached_tags(data)
+    todo = len({d["name"] for d in data.values()}) - (0 if args.refresh else len(have))
+    if todo:
+        print(f"Fetching Scryfall Tagger tags for {todo} cards, {args.delay:g}s apart (~{todo * args.delay / 60:.0f} min)")
+    counter = iter(range(1, todo + 1))
+    tags = fetch_tags(
+        data, delay=args.delay, refresh=args.refresh,
+        progress=lambda name, status: print(f"  [{next(counter, todo)}/{todo}] {name}: {status}", flush=True),
+    )
+    missing = sorted({d["name"] for d in data.values()} - tags.keys())
+    print(f"Card data and tags for {len(tags)} cards cached in {TAGS_CACHE_PATH.parent}")
+    if missing:
+        print(f"No tags for: {', '.join(missing)} (run fetch again to retry)")
     return 0
 
 
@@ -108,6 +136,8 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("-s", "--shuffle", default=DEFAULT_SHUFFLE,
                      help=f'shuffle routine, e.g. "pile7, riffle x4, mash x2, cut" (default: "{DEFAULT_SHUFFLE}")')
     run.add_argument("--seed", type=int)
+    run.add_argument("--pilot", choices=sorted(PILOTS), default="greedy",
+                     help="play strategy; 'landfall' casts landfall cards before the turn's land drop")
     run.add_argument("--no-baseline", action="store_true", help="skip the perfectly-random comparison run")
     run.add_argument("--skip-first-draw", action="store_true", help="skip the turn-1 draw (1v1 rules)")
     run.add_argument("--out", default="report.html", help="HTML report path ('' to skip)")
@@ -117,6 +147,12 @@ def main(argv: list[str] | None = None) -> int:
     tags = sub.add_parser("tags", help="show how each card was tagged")
     _add_deck_args(tags)
     tags.set_defaults(func=cmd_tags)
+
+    fetch = sub.add_parser("fetch", help="cache Scryfall card data and Tagger tags for a deck (slow, polite)")
+    _add_deck_args(fetch)
+    fetch.add_argument("--delay", type=float, default=3.0, help="seconds between Tagger requests (default: 3)")
+    fetch.add_argument("--refresh", action="store_true", help="re-fetch tags that are already cached")
+    fetch.set_defaults(func=cmd_fetch)
 
     args = parser.parse_args(argv)
     try:

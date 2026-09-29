@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass, field
-from statistics import mean, median, pvariance
+from statistics import mean, median, pstdev, pvariance
 
 from .cards import Card
 
 ROLES = ("ramp", "card_draw", "tutor", "interaction", "wipe")
+# What describes a kept opening hand when picking the most typical one.
+HAND_PROFILE = ("cards", "lands", "ramp", "card_draw", "interaction", "spell_mv")
 
 
 @dataclass
@@ -29,6 +31,8 @@ class GameRecord:
     damage: list[int] = field(default_factory=list)
     pod_damage: list[int] = field(default_factory=list)
     hand: list[int] = field(default_factory=list)
+    opening_hand: list[str] = field(default_factory=list)  # kept hand after mulligans, spells by mana value then lands
+    opening_profile: dict[str, float] = field(default_factory=dict)
     _drop_this_turn: bool = False
 
     def note_shuffle(self, library: list[Card]) -> None:
@@ -37,6 +41,19 @@ class GameRecord:
             run = run + 1 if card.is_land else 0
             best = max(best, run)
         self.longest_land_run = best
+
+    def note_opening_hand(self, hand: list[Card]) -> None:
+        spells = sorted((c for c in hand if not c.is_land), key=lambda c: (c.cmc, c.name))
+        lands = sorted((c for c in hand if c.is_land), key=lambda c: c.name)
+        self.opening_hand = [c.name for c in spells + lands]
+        self.opening_profile = {
+            "cards": len(hand),
+            "lands": len(lands),
+            "ramp": sum(1 for c in spells if c.tags.get("ramp")),
+            "card_draw": sum(1 for c in spells if c.tags.get("card_draw")),
+            "interaction": sum(1 for c in spells if c.tags.get("interaction") or c.tags.get("wipe")),
+            "spell_mv": mean(c.cmc for c in spells) if spells else 0.0,
+        }
 
     def see(self, card: Card, turn: int) -> None:
         self.first_seen.setdefault(card.name, turn)
@@ -89,6 +106,20 @@ def _seen_by_turn(records: list[GameRecord], getter, turns: int) -> list[float]:
     return [round(sum(1 for f in firsts if f is not None and f <= t) / len(records), 4) for t in range(turns + 1)]
 
 
+def _average_hand(records: list[GameRecord]) -> dict:
+    """The real kept hand closest to the average one, measuring each profile feature in standard deviations."""
+    profiles = [r.opening_profile for r in records]
+    avg = {k: mean(p[k] for p in profiles) for k in HAND_PROFILE}
+    spread = {k: pstdev(p[k] for p in profiles) or 1.0 for k in HAND_PROFILE}
+    distance = lambda p: sum(((p[k] - avg[k]) / spread[k]) ** 2 for k in HAND_PROFILE)
+    best = min(records, key=lambda r: distance(r.opening_profile))
+    return {
+        "cards": best.opening_hand,
+        "profile": best.opening_profile,
+        "mean": {k: round(v, 2) for k, v in avg.items()},
+    }
+
+
 def aggregate(records: list[GameRecord], turns: int, key_cards: list[str]) -> dict:
     n = len(records)
     mana = _per_turn_mean(records, "mana")
@@ -111,6 +142,7 @@ def aggregate(records: list[GameRecord], turns: int, key_cards: list[str]) -> di
             "pod_damage": _per_turn_mean(records, "pod_damage"),
             "hand_size": _per_turn_mean(records, "hand"),
         },
+        "average_hand": _average_hand(records),
         "commander_turn": _distribution([r.commander_turn for r in records], turns),
         "kill_turn_1opp": _distribution([r.kill1_turn for r in records], turns),
         "kill_turn_pod": _distribution([r.kill_pod_turn for r in records], turns),

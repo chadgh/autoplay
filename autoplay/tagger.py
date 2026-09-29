@@ -4,8 +4,8 @@ Tags are {name: int}. Effect tags the engine acts on:
   land, tapped_land, fetch, bounce_land, mana (units per turn), ritual (one-shot units),
   land_to_bf, land_to_hand, land_bf_tapped, draw, upkeep_draw, landfall_draw,
   burn (one opponent), drain (each opponent), tutor, tutor_top, haste, extra_land, creature
-Role tags used only for stats:
-  ramp, mana_rock, mana_dork, card_draw, interaction, wipe
+Role tags used only for stats and pilot decisions:
+  ramp, mana_rock, mana_dork, card_draw, interaction, wipe, landfall
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ from .cards import Card
 NUMBER_WORDS = {"a": 1, "an": 1, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7}
 LAND_TYPES = ("Plains", "Island", "Swamp", "Mountain", "Forest")
 TUTOR_TYPES = ("creature", "instant", "sorcery", "artifact", "enchantment", "planeswalker")
-ROLE_TAGS = {"ramp", "mana_rock", "mana_dork", "card_draw", "interaction", "wipe", "creature", "land"}
+ROLE_TAGS = {"ramp", "mana_rock", "mana_dork", "card_draw", "interaction", "wipe", "creature", "land", "landfall"}
 
 _REMINDER_RE = re.compile(r"\([^)]*\)")
 _ABILITY_WORD_RE = re.compile(r"^[A-Z][\w' ]+ — (?=When|At )")  # "Landfall — Whenever ..."
@@ -76,6 +76,8 @@ def tag_card(card: Card, identity: frozenset) -> Card:
     for line in lines:
         line = _ABILITY_WORD_RE.sub("", line)
         landfall = bool(_LANDFALL_RE.match(line))
+        if landfall:
+            tags["landfall"] = 1
         # One-shot effects are modeled for spells, ETB triggers, and upkeep triggers.
         triggered = line.startswith("Whenever") or (
             line.startswith("When") and "enters" not in line.split(",")[0]

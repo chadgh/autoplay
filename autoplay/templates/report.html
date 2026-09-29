@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ deck_name }} Goldfish Report</title>
+<script src="https://cdn.jsdelivr.net/npm/plotly.js-basic-dist-min@2.35.2/plotly-basic.min.js"></script>
+<style>
+:root {
+  color-scheme: light;
+  --surface-0: #f4f3f0;
+  --surface-1: #fcfcfb;
+  --border: #e3e2de;
+  --grid: #ebeae6;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #7a7974;
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --warn-bg: #fff4dc;
+  --warn-text: #6b4a00;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --surface-0: #121211;
+    --surface-1: #1a1a19;
+    --border: #2e2e2c;
+    --grid: #2a2a28;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #8f8e86;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --warn-bg: #3a2e12;
+    --warn-text: #f5d58a;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-0: #121211;
+  --surface-1: #1a1a19;
+  --border: #2e2e2c;
+  --grid: #2a2a28;
+  --text-primary: #ffffff;
+  --text-secondary: #c3c2b7;
+  --text-muted: #8f8e86;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --warn-bg: #3a2e12;
+  --warn-text: #f5d58a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--surface-0); color: var(--text-primary);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 1120px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: -0.01em; }
+h2 { font-size: 18px; margin: 40px 0 12px; }
+h3 { font-size: 14px; margin: 0 0 2px; font-weight: 600; }
+.sub { color: var(--text-secondary); margin: 0; }
+.muted { color: var(--text-muted); font-size: 13px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-top: 24px; }
+.tile, .card { min-width: 0; background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+.tile .label { color: var(--text-secondary); font-size: 13px; }
+.tile .value { font-size: 30px; font-weight: 650; font-variant-numeric: tabular-nums; margin: 2px 0; }
+.tile .cmp { color: var(--text-muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 1fr)); gap: 12px; }
+.chart { height: 260px; width: 100%; overflow: hidden; }
+.legend { display: flex; gap: 16px; font-size: 13px; color: var(--text-secondary); margin: 8px 0 0; flex-wrap: wrap; }
+.legend span::before { content: ""; display: inline-block; width: 16px; height: 2px; vertical-align: middle; margin-right: 6px; background: var(--c); }
+details { margin-top: 8px; font-size: 13px; color: var(--text-secondary); }
+summary { cursor: pointer; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; width: 100%; }
+th, td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--text-secondary); font-weight: 600; }
+.warn { background: var(--warn-bg); color: var(--warn-text); border-radius: 10px; padding: 12px 16px; margin-top: 12px; font-size: 14px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chips span, .chips a { text-decoration: none; border: 1px solid currentColor; border-radius: 999px; padding: 1px 10px; font-size: 13px; }
+a { color: inherit; }
+.taglist { display: grid; grid-template-columns: minmax(120px, max-content) 1fr; gap: 10px 16px; margin-top: 12px; font-size: 13px; }
+.taglist > div:nth-child(odd) { font-weight: 600; overflow-wrap: anywhere; }
+.taglist .chips { margin-top: 0; color: var(--text-secondary); }
+.hand { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 136px), 1fr)); gap: 12px; margin-top: 12px; }
+.hand a { display: block; text-decoration: none; font-size: 13px; text-align: center; overflow-wrap: anywhere; }
+.hand a:hover span { text-decoration: underline; }
+.hand img { display: block; width: 100%; aspect-ratio: 488 / 680; object-fit: cover; border-radius: 4.75% / 3.5%; background: var(--grid); margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title"></h1>
+  <p class="sub" id="subtitle"></p>
+  <p class="muted" id="settings"></p>
+  <div class="tiles" id="tiles"></div>
+  <div id="untagged"></div>
+
+  <h2>Average opening hand</h2>
+  <div class="card" id="average-hand"></div>
+
+  <h2>Mana</h2>
+  <div class="grid" id="mana-charts"></div>
+
+  <h2>Speed</h2>
+  <div class="grid" id="speed-charts"></div>
+
+  <h2>Card access</h2>
+  <div class="card" id="roles"></div>
+  <div class="card" id="keys" style="margin-top:12px"></div>
+
+  <h2>Card tags</h2>
+  <p class="muted">Community tags from <a href="https://tagger.scryfall.com">Scryfall Tagger</a>, with parent tags included (a "mana rock" is also "ramp"). Informational only; the simulator doesn't use them.</p>
+  <div id="scryfall-tags"></div>
+
+  <h2>Shuffle realism</h2>
+  <p class="muted">How clumped your human-style shuffle leaves the deck, compared with a perfectly random shuffle. Each game starts from the previous game's cards, picked up by zone.</p>
+  <div class="grid" id="shuffle-charts"></div>
+</main>
+
+<script id="data" type="application/json">{{ data_json }}</script>
+<script>
+const R = JSON.parse(document.getElementById("data").textContent);
+const H = R.human, B = R.random || null;
+const T = R.settings.turns;
+const turnsAxis = Array.from({length: T}, (_, i) => i + 1);
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const el = (tag, attrs = {}, text) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  if (text !== undefined) n.textContent = text;
+  return n;
+};
+const pct = (x) => (x == null ? "—" : Math.round(x * 100) + "%");
+const num = (x, d = 1) => (x == null ? "—" : Number(x).toFixed(d));
+const links = R.deck.links || {};
+const cardLink = (name) => el("a", {
+  href: links[name] || "https://scryfall.com/search?q=" + encodeURIComponent(`!"${name}"`),
+  target: "_blank", rel: "noopener",
+}, name);
+
+// ---------------------------------------------------------------- header
+document.getElementById("title").textContent = R.deck.name;
+const subtitle = document.getElementById("subtitle");
+R.deck.commanders.forEach((n, i) => subtitle.append(i ? " + " : "", cardLink(n)));
+subtitle.append(` · ${R.deck.size} cards · ${R.deck.lands} lands`);
+document.getElementById("settings").textContent =
+  `${R.settings.games.toLocaleString()} games × ${T} turns · shuffle: ${R.settings.shuffle}` +
+  (R.settings.seed != null ? ` · seed ${R.settings.seed}` : "") + (B ? " · compared against a perfectly random shuffle" : "");
+
+function tile(label, value, cmp) {
+  const t = el("div", {class: "tile"});
+  t.append(el("div", {class: "label"}, label), el("div", {class: "value"}, value));
+  if (cmp) t.append(el("div", {class: "cmp"}, cmp));
+  document.getElementById("tiles").append(t);
+}
+const t4 = Math.min(4, T) - 1;
+tile("Commander cast (median turn)", num(H.commander_turn.median, 0),
+     `${pct(H.commander_turn.never)} of games never cast it` );
+tile("Goldfish kill, 1 opponent (median)", H.kill_turn_1opp.median == null ? `> T${T}` : "T" + num(H.kill_turn_1opp.median, 0),
+     `${pct(1 - H.kill_turn_1opp.never)} of games kill by turn ${T}`);
+tile("Goldfish kill, 3 opponents (median)", H.kill_turn_pod.median == null ? `> T${T}` : "T" + num(H.kill_turn_pod.median, 0),
+     `${pct(1 - H.kill_turn_pod.never)} of games kill by turn ${T}`);
+tile("Mulligan rate", pct(H.mulligans.rate), B ? `random shuffle: ${pct(B.mulligans.rate)}` : "");
+tile(`Lands on turn ${t4 + 1}`, num(H.per_turn.lands[t4], 2),
+     `land drop made on turn ${t4 + 1}: ${pct(H.per_turn.land_drop_pct[t4])}`);
+
+if (R.deck.off_identity && R.deck.off_identity.length) {
+  const w = el("div", {class: "warn"});
+  w.append(el("strong", {}, `${R.deck.off_identity.length} cards are outside your commander's color identity`),
+           el("div", {}, "They're not legal in this deck, and the simulator usually can't cast them."));
+  const chips = el("div", {class: "chips"});
+  R.deck.off_identity.forEach((n) => chips.append(cardLink(n)));
+  w.append(chips);
+  document.getElementById("untagged").append(w);
+}
+if (R.deck.untagged.length) {
+  const w = el("div", {class: "warn"});
+  w.append(el("strong", {}, `${R.deck.untagged.length} cards have text the simulator doesn't understand`),
+           el("div", {}, "They're played as plain cards: cast for their cost, but their abilities do nothing. Add them to an overrides file to model them."));
+  const chips = el("div", {class: "chips"});
+  R.deck.untagged.forEach((n) => chips.append(cardLink(n)));
+  w.append(chips);
+  document.getElementById("untagged").append(w);
+}
+
+// ---------------------------------------------------------------- average hand
+(function () {
+  const A = H.average_hand, box = document.getElementById("average-hand");
+  if (!A || !A.cards.length) { box.append(el("div", {class: "muted"}, "No opening hands recorded.")); return; }
+  const images = R.deck.images || {};
+  const imageFor = (name) => images[name] ||
+    "https://api.scryfall.com/cards/named?format=image&version=normal&exact=" + encodeURIComponent(name);
+  const P = A.profile, M = A.mean;
+  const count = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+  box.append(el("h3", {}, "The most typical hand you keep"),
+             el("div", {class: "muted"},
+                `A real kept hand (after mulligans, human shuffle) closest to the average of all ${R.settings.games.toLocaleString()}: ` +
+                `${count(P.lands, "land")}, ${P.ramp} ramp, ${P.card_draw} draw, ${P.interaction} interaction, ` +
+                `spells averaging ${num(P.spell_mv)} mana value. ` +
+                `Average: ${num(M.cards)} cards, ${num(M.lands)} lands, ${num(M.ramp)} ramp, ${num(M.card_draw)} draw, ` +
+                `${num(M.interaction)} interaction, ${num(M.spell_mv)} mana value.`));
+  const hand = el("div", {class: "hand"});
+  A.cards.forEach((name) => {
+    const a = cardLink(name);
+    a.textContent = "";
+    a.append(el("img", {src: imageFor(name), alt: name, loading: "lazy"}), el("span", {}, name));
+    hand.append(a);
+  });
+  box.append(hand);
+})();
+
+// ---------------------------------------------------------------- charts
+const charts = [];
+
+function dataTable(headers, rows) {
+  const wrap = el("div", {class: "table-wrap"});
+  const table = el("table");
+  const tr = el("tr");
+  headers.forEach((h) => tr.append(el("th", {}, h)));
+  table.append(tr);
+  rows.forEach((r) => {
+    const row = el("tr");
+    r.forEach((c) => {
+      const td = el("td");
+      td.append(c);  // a string or a node (e.g. a card link)
+      row.append(td);
+    });
+    table.append(row);
+  });
+  wrap.append(table);
+  return wrap;
+}
+
+// kind: "line" or "bar". series: [{name, y, colorVar}]; fmt formats values.
+function chart(container, {title, note, x, xTitle, series, kind = "line", fmt = (v) => num(v), yMax, ref}) {
+  const card = el("div", {class: "card"});
+  card.append(el("h3", {}, title));
+  if (note) card.append(el("div", {class: "muted"}, note));
+  const plot = el("div", {class: "chart", role: "img", "aria-label": title});
+  card.append(plot);
+  if (series.length > 1) {
+    const legend = el("div", {class: "legend"});
+    series.forEach((s) => { const sp = el("span", {}, s.name); sp.style.setProperty("--c", `var(${s.colorVar})`); legend.append(sp); });
+    card.append(legend);
+  }
+  const det = el("details");
+  det.append(el("summary", {}, "Show data"));
+  det.append(dataTable([xTitle, ...series.map((s) => s.name)], x.map((xv, i) => [String(xv), ...series.map((s) => fmt(s.y[i]))])));
+  card.append(det);
+  document.getElementById(container).append(card);
+  charts.push({plot, x, xTitle, series, kind, fmt, yMax, ref});
+}
+
+function render(c) {
+  const text = css("--text-secondary"), grid = css("--grid"), surface = css("--surface-1");
+  const traces = c.series.map((s) => {
+    const color = css(s.colorVar);
+    const common = {x: c.x, y: s.y, name: s.name, hovertemplate: "%{customdata}<extra>" + s.name + "</extra>", customdata: s.y.map(c.fmt)};
+    return c.kind === "bar"
+      ? {...common, type: "bar", marker: {color, line: {width: 0}}}
+      : {...common, type: "scatter", mode: "lines+markers", line: {color, width: 2}, marker: {color, size: 8, line: {color: surface, width: 2}}};
+  });
+  const shapes = c.ref ? [{type: "line", xref: "paper", x0: 0, x1: 1, y0: c.ref.y, y1: c.ref.y, line: {color: css("--text-muted"), width: 1}}] : [];
+  const annotations = c.ref ? [{xref: "paper", x: 0, y: c.ref.y, yanchor: "bottom", xanchor: "left", text: c.ref.label, showarrow: false, font: {color: css("--text-muted"), size: 12}}] : [];
+  Plotly.react(c.plot, traces, {
+    width: c.plot.clientWidth || undefined,
+    margin: {l: 44, r: 12, t: 12, b: 40},
+    paper_bgcolor: surface, plot_bgcolor: surface,
+    font: {family: "system-ui, sans-serif", color: text, size: 12},
+    showlegend: false,
+    bargap: 0.25, bargroupgap: 0.08,
+    hovermode: "x unified",
+    hoverlabel: {bgcolor: surface, bordercolor: css("--border"), font: {color: css("--text-primary")}},
+    xaxis: {title: {text: c.xTitle, font: {size: 12}}, gridcolor: grid, linecolor: grid, zeroline: false, tickmode: "array", tickvals: c.x,
+            showspikes: c.kind === "line", spikemode: "across", spikethickness: 1, spikecolor: css("--text-muted"), spikedash: "solid"},
+    yaxis: {gridcolor: grid, linecolor: grid, zeroline: false, rangemode: "tozero", range: c.yMax ? [0, c.yMax] : undefined,
+            tickformat: c.fmt === pct ? ".0%" : undefined},
+    shapes, annotations,
+  }, {displayModeBar: false, responsive: true});
+}
+
+const both = (key, getter) => {
+  const s = [{name: "Human shuffle", y: getter(H), colorVar: "--series-1"}];
+  if (B) s.push({name: "Random shuffle", y: getter(B), colorVar: "--series-2"});
+  return s;
+};
+
+chart("mana-charts", {title: "Land drop made", note: "Share of games that played a land that turn", x: turnsAxis, xTitle: "Turn",
+  series: both("ld", (r) => r.per_turn.land_drop_pct), fmt: pct, yMax: 1.02});
+chart("mana-charts", {title: "Mana available", note: "Average mana you could make that turn", x: turnsAxis, xTitle: "Turn",
+  series: both("ma", (r) => r.per_turn.mana_available)});
+chart("mana-charts", {title: "Mana left unspent", note: "Average mana available minus mana spent", x: turnsAxis, xTitle: "Turn",
+  series: both("mu", (r) => r.per_turn.mana_unused)});
+chart("mana-charts", {title: "Color screw", note: "Share of games holding a spell you had enough mana for, but not the right colors", x: turnsAxis, xTitle: "Turn",
+  series: both("cs", (r) => r.per_turn.color_screw_pct), fmt: pct});
+
+const distTurns = Array.from({length: T}, (_, i) => i + 1);
+const distY = (d) => distTurns.map((t) => d.by_turn[String(t)] || 0);
+chart("speed-charts", {title: "Damage to one opponent", note: "Average total damage by end of turn", x: turnsAxis, xTitle: "Turn",
+  series: both("dmg", (r) => r.per_turn.damage), ref: {y: 40, label: "40 life"}});
+chart("speed-charts", {title: "Commander first cast", note: `Share of games by turn · never cast within ${T} turns: ${pct(H.commander_turn.never)}`, x: distTurns, xTitle: "Turn",
+  series: both("cmd", (r) => distY(r.commander_turn)), kind: "bar", fmt: pct});
+chart("speed-charts", {title: "Goldfish kill turn, 1 opponent", note: `40 life or 21 commander damage · no kill within ${T} turns: ${pct(H.kill_turn_1opp.never)}`, x: distTurns, xTitle: "Turn",
+  series: both("k1", (r) => distY(r.kill_turn_1opp)), kind: "bar", fmt: pct});
+chart("speed-charts", {title: "Goldfish kill turn, 3 opponents", note: `120 total damage; combat hits one player at a time · no kill: ${pct(H.kill_turn_pod.never)}`, x: distTurns, xTitle: "Turn",
+  series: both("kp", (r) => distY(r.kill_turn_pod)), kind: "bar", fmt: pct});
+
+const landCounts = Array.from({length: 8}, (_, i) => i);
+chart("shuffle-charts", {title: "Lands in opening 7", note: `Before mulligans · variance ${num(H.shuffle.opening_lands_variance, 2)} human` + (B ? ` vs ${num(B.shuffle.opening_lands_variance, 2)} random` : ""),
+  x: landCounts, xTitle: "Lands", series: both("ol", (r) => landCounts.map((k) => r.shuffle.opening_lands_distribution[String(k)] || 0)), kind: "bar", fmt: pct});
+chart("shuffle-charts", {title: "Longest run of lands in the top 20 cards", note: "Average across games; higher means more clumping",
+  x: ["Average run"], xTitle: "", series: both("lr", (r) => [r.shuffle.longest_land_run_mean]), kind: "bar", fmt: (v) => num(v, 2)});
+
+// ---------------------------------------------------------------- tables
+function seenTable(container, title, note, rows) {
+  const box = document.getElementById(container);
+  box.append(el("h3", {}, title), el("div", {class: "muted"}, note));
+  const headers = ["", "Opening hand", ...turnsAxis.map((t) => "T" + t)];
+  box.append(dataTable(headers, rows.map(([name, arr]) => [name, ...arr.map(pct)])));
+}
+const roleNames = {ramp: "Any ramp", card_draw: "Any card draw", tutor: "Any tutor", interaction: "Any removal/counter", wipe: "Any board wipe"};
+seenTable("roles", "Chance you've seen a card of each type", "Seen = in hand by the end of that turn (human shuffle)",
+  Object.entries(H.roles).map(([k, v]) => [roleNames[k] || k, v]));
+if (Object.keys(H.key_cards).length) {
+  seenTable("keys", "Key cards", "Chance you've seen each key card by the end of that turn (human shuffle; tutors fetch key cards first)",
+    Object.entries(H.key_cards).map(([n, v]) => [cardLink(n), v]));
+} else {
+  const k = document.getElementById("keys");
+  k.append(el("h3", {}, "Key cards"), el("div", {class: "muted"}, "Add a key_cards list to an overrides file to track your combo pieces and win conditions here."));
+}
+
+// ---------------------------------------------------------------- scryfall tags
+(function () {
+  const S = R.deck.scryfall_tags || {cards: {}, shared: [], relationships: [], missing: []};
+  const box = document.getElementById("scryfall-tags");
+  // rows of [label, items]; label and items are each a card name (linked) or plain text
+  const tagList = (rows, labelIsCard) => {
+    const list = el("div", {class: "taglist"});
+    rows.forEach(([label, items]) => {
+      const chips = el("div", {class: "chips"});
+      items.forEach((i) => chips.append(labelIsCard ? el("span", {}, i) : cardLink(i)));
+      const head = el("div");
+      head.append(labelIsCard ? cardLink(label) : label);
+      list.append(head, chips);
+    });
+    return list;
+  };
+  if (!Object.keys(S.cards).length) {
+    box.append(el("div", {class: "card muted"}, "No tags cached. Run `autoplay fetch` on this deck, then re-run to see them here."));
+    return;
+  }
+  if (S.relationships.length) {
+    const c = el("div", {class: "card"});
+    c.append(el("h3", {}, "Relationships between cards in this deck"));
+    const kind = (k) => k.toLowerCase().replace(/_/g, " ");
+    S.relationships.forEach((r) => {
+      const row = el("div");
+      row.append(cardLink(r.a), ` — ${kind(r.kind)} — `, cardLink(r.b));
+      c.append(row);
+    });
+    box.append(c);
+  }
+  const shared = el("div", {class: "card", style: "margin-top:12px"});
+  shared.append(el("h3", {}, "Tags shared by several cards"),
+                el("div", {class: "muted"}, "Groups of cards doing the same job, largest first"));
+  const TOP = 20;
+  shared.append(tagList(S.shared.slice(0, TOP).map(([t, ns]) => [`${t} (${ns.length})`, ns])));
+  if (S.shared.length > TOP) {
+    const more = el("details");
+    more.append(el("summary", {}, `${S.shared.length - TOP} more shared tags`),
+                tagList(S.shared.slice(TOP).map(([t, ns]) => [`${t} (${ns.length})`, ns])));
+    shared.append(more);
+  }
+  box.append(shared);
+  const byCard = el("div", {class: "card", style: "margin-top:12px"});
+  const det = el("details");
+  det.append(el("summary", {}, `Tags for each card (${Object.keys(S.cards).length})`),
+             tagList(Object.entries(S.cards), true));
+  byCard.append(el("h3", {}, "By card"), det);
+  if (S.missing.length) byCard.append(el("div", {class: "muted"}, `No tags cached for ${S.missing.length} cards: ${S.missing.join(", ")}. Run \`autoplay fetch\` to add them.`));
+  box.append(byCard);
+})();
+
+const drawAll = () => charts.forEach(render);
+drawAll();
+const ro = new ResizeObserver((entries) => entries.forEach((e) => render(charts.find((c) => c.plot === e.target))));
+charts.forEach((c) => ro.observe(c.plot));
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawAll);
+new MutationObserver(drawAll).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
+</script>
+</body>
+</html>

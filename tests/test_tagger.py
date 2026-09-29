@@ -71,8 +71,8 @@ def test_untagged():
 
 
 def test_landfall_draw_is_not_one_shot():
-    assert tagged("Aesi, Tyrant of Gyre Strait").tags == {"creature": 1, "extra_land": 1, "landfall_draw": 1, "card_draw": 1}
-    assert tagged("Tatyova, Benthic Druid").tags == {"creature": 1, "landfall_draw": 1, "card_draw": 1}
+    assert tagged("Aesi, Tyrant of Gyre Strait").tags == {"creature": 1, "extra_land": 1, "landfall_draw": 1, "landfall": 1, "card_draw": 1}
+    assert tagged("Tatyova, Benthic Druid").tags == {"creature": 1, "landfall_draw": 1, "landfall": 1, "card_draw": 1}
 
 
 def test_paid_fetch_is_just_a_land():

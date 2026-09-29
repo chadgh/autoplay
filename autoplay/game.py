@@ -21,8 +21,8 @@ DEFAULT_GATHER = ("library", "hand", "graveyard", "nonlands", "lands")
 @dataclass
 class GameConfig:
     turns: int = 10
-    shuffle: list[Step] = field(default_factory=lambda: parse_routine("mash x3, riffle x2, cut"))
-    search_shuffle: list[Step] = field(default_factory=lambda: parse_routine("mash x2"))
+    shuffle: list[Step] = field(default_factory=lambda: parse_routine("mash x2, cut"))
+    search_shuffle: list[Step] = field(default_factory=lambda: parse_routine("mash x2, cut"))
     gather_order: tuple[str, ...] = DEFAULT_GATHER
     draw_first_turn: bool = True  # multiplayer: nobody skips their first draw
     opponents: int = 3
@@ -83,6 +83,7 @@ class Game:
             self.hand.remove(card)
             self.library.append(card)
         self.record.mulligans = mulligans
+        self.record.note_opening_hand(self.hand)
         for card in self.hand:
             self.record.see(card, 0)
 

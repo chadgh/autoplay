@@ -96,3 +96,12 @@ def test_off_identity_warning():
     text = "Commander\n1 Aesi, Tyrant of Gyre Strait\nDeck\n1 Lightning Bolt\n1 Forest\n"
     deck = build_deck("t", parse_decklist(text), DATA, Overrides())
     assert deck.off_identity() == ["Lightning Bolt"]
+
+
+def test_average_hand_is_a_typical_kept_hand(result):
+    hand = result["human"]["average_hand"]
+    names = hand["cards"]
+    assert len(names) == hand["profile"]["cards"] <= 7
+    assert hand["profile"]["lands"] == sum(n in {"Forest", "Mountain", "Plains", "Island", "Swamp", "Command Tower",
+                                                 "Evolving Wilds", "Temple of Mystery"} for n in names)
+    assert abs(hand["profile"]["lands"] - hand["mean"]["lands"]) <= 1

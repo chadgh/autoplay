@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from .cards import CACHE_PATH, Card, DeckEntry, card_from_scryfall, fetch_card_data, parse_decklist
 from .overrides import Overrides, apply_overrides
 from .tagger import is_untagged, tag_card
+from .tagger_api import cached_tags
 
 
 @dataclass
@@ -16,6 +17,7 @@ class Deck:
     commanders: list[Card]
     library: list[Card]  # the 99 (or so), in decklist order
     identity: frozenset = frozenset()
+    scryfall_tags: dict[str, dict] = field(default_factory=dict)  # name -> Tagger {"tags", "relationships"}
 
     def untagged(self) -> list[str]:
         return sorted({c.name for c in self.library + self.commanders if is_untagged(c)})
@@ -51,10 +53,16 @@ def build_deck(name: str, entries, card_data: dict[str, dict], ov: Overrides) ->
     return Deck(name, commanders, library, identity)
 
 
-def load_deck(path: str | Path, ov: Overrides, cache_path: Path = CACHE_PATH, fetch=None) -> Deck:
-    path = Path(path)
-    entries = parse_decklist(path.read_text())
+def deck_card_data(path: str | Path, ov: Overrides, cache_path: Path = CACHE_PATH, fetch=None):
+    """Parse a decklist and return (entries, {lowercased name: scryfall json})."""
+    entries = parse_decklist(Path(path).read_text())
     names = [e.name for e in entries] + ov.commander
     kwargs = {"fetch": fetch} if fetch else {}
-    data = fetch_card_data(names, cache_path, **kwargs)
-    return build_deck(path.stem, entries, data, ov)
+    return entries, fetch_card_data(names, cache_path, **kwargs)
+
+
+def load_deck(path: str | Path, ov: Overrides, cache_path: Path = CACHE_PATH, fetch=None) -> Deck:
+    entries, data = deck_card_data(path, ov, cache_path, fetch)
+    deck = build_deck(Path(path).stem, entries, data, ov)
+    deck.scryfall_tags = cached_tags(data, cache_path.parent / "tags.json")
+    return deck

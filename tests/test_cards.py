@@ -93,3 +93,17 @@ def test_parse_commander_section_after_deck_and_outside_the_game():
         ("Plains", 15, False),
         ("Bruna, Light of Alabaster", 1, True),
     ]
+
+
+def test_card_from_scryfall_keeps_page_link_without_tracking():
+    data = {**by_name("Grizzly Bears"), "scryfall_uri": "https://scryfall.com/card/m10/180/grizzly-bears?utm_source=api"}
+    assert card_from_scryfall(data).scryfall_uri == "https://scryfall.com/card/m10/180/grizzly-bears"
+
+
+def test_card_from_scryfall_image_uses_played_face():
+    img = lambda tag: {"normal": f"https://cards.scryfall.io/normal/{tag}.jpg"}
+    single = {**by_name("Grizzly Bears"), "image_uris": img("bears")}
+    assert card_from_scryfall(single).image_uri.endswith("bears.jpg")
+    mdfc = by_name("Shatterskull Smashing")
+    mdfc = {**mdfc, "card_faces": [{**f, "image_uris": img(f"face{i}")} for i, f in enumerate(mdfc["card_faces"])]}
+    assert card_from_scryfall(mdfc).image_uri.endswith("face1.jpg")  # the land face

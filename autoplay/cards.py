@@ -32,6 +32,8 @@ class Card:
     tags: dict[str, int] = field(default_factory=dict)
     mana_colors: frozenset = frozenset()  # what each mana unit this card makes can be spent as
     search_types: frozenset = frozenset()  # land subtypes a land-search may find ("basic" = any basic)
+    scryfall_uri: str = ""
+    image_uri: str = ""
     cost: Cost = field(init=False)
 
     def __post_init__(self):
@@ -95,6 +97,8 @@ def card_from_scryfall(data: dict) -> Card:
         keywords=frozenset(data.get("keywords", [])),
         produced=frozenset(data.get("produced_mana", [])),
         color_identity=frozenset(data.get("color_identity", [])),
+        scryfall_uri=data.get("scryfall_uri", "").split("?")[0],  # drop the utm tracking query
+        image_uri=(face.get("image_uris") or data.get("image_uris") or {}).get("normal", ""),
     )
 
 

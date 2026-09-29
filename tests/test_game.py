@@ -2,10 +2,11 @@ import json
 import random
 from pathlib import Path
 
-from autoplay.cards import card_from_scryfall
+from autoplay.cards import Card, card_from_scryfall
 from autoplay.game import Game, GameConfig
-from autoplay.pilot import GreedyPilot
+from autoplay.pilot import GreedyPilot, LandfallPilot
 from autoplay.shuffle import parse_routine
+from autoplay.stats import GameRecord
 from autoplay.tagger import tag_card
 
 FIXTURE = {c["name"].split(" // ")[0]: c for c in json.loads((Path(__file__).parent / "fixtures" / "cards.json").read_text())}
@@ -120,6 +121,33 @@ def test_landfall_draw():
     assert len(g.hand) == 1
 
 
+def test_landfall_tag():
+    (tatyova, bears) = cards("Tatyova, Benthic Druid", "Grizzly Bears")
+    assert tatyova.tags.get("landfall") and not bears.tags.get("landfall")
+
+
+def _landfall_board(pilot):
+    g = Game(cards(*FILLER), [], pilot, GameConfig(shuffle=[], search_shuffle=[]), random.Random(0))
+    for land in cards("Forest", "Forest", "Forest", "Island", "Island", "Island"):
+        g._enter_land(land, tapped=False)
+    g.hand = cards("Tatyova, Benthic Druid", "Forest")
+    return g
+
+
+def test_landfall_pilot_casts_trigger_before_land():
+    g = _landfall_board(LandfallPilot())
+    g.pilot.main_phase(g)
+    assert len(g.lands()) == 7
+    assert len(g.library) == len(FILLER) - 1  # Tatyova drew off the land drop
+
+
+def test_greedy_pilot_plays_land_first():
+    g = _landfall_board(GreedyPilot())
+    g.pilot.main_phase(g)
+    assert len(g.lands()) == 7
+    assert len(g.library) == len(FILLER)
+
+
 def test_tutor_to_top_respects_type():
     lib = cards("Island", "Mystical Tutor", "Island", "Island", "Island", "Island", "Island",
                 *(["Grizzly Bears"] * 10), "Lightning Bolt", "Thassa's Oracle", *FILLER)
@@ -129,3 +157,11 @@ def test_tutor_to_top_respects_type():
     g.start()
     g.take_turn()  # Island, Mystical Tutor -> Bolt (instant) on top, not Oracle (creature)
     assert g.library[0].name == "Lightning Bolt"
+
+
+def test_record_opening_hand_sorts_spells_then_lands():
+    rec = GameRecord()
+    rec.note_opening_hand([Card("Forest", type_line="Basic Land — Forest"), Card("Big", cmc=5, type_line="Creature"),
+                           Card("Small", cmc=1, type_line="Instant", tags={"interaction": 1})])
+    assert rec.opening_hand == ["Small", "Big", "Forest"]
+    assert rec.opening_profile == {"cards": 3, "lands": 1, "ramp": 0, "card_draw": 0, "interaction": 1, "spell_mv": 3}

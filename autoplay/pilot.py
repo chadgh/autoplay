@@ -165,3 +165,27 @@ class GreedyPilot:
     def choose_bounce(self, game: "Game", lands: list["Permanent"]) -> "Permanent":
         # Return a land that's already been tapped for mana this turn (or a basic).
         return min(lands, key=lambda p: (not p.tapped, "Basic" not in p.card.type_line, -len(p.card.mana_colors)))
+
+
+class LandfallPilot(GreedyPilot):
+    """GreedyPilot that, while a land drop is still available, casts any affordable
+    landfall permanents before playing the land so the drop triggers them."""
+
+    def main_phase(self, game: "Game") -> None:
+        while True:
+            card = self._next_landfall(game)
+            if card is None:
+                self._play_lands(game)
+                card = self._next_spell(game)
+            if card is None:
+                break
+            game.cast(card)
+
+    def _next_landfall(self, game: "Game") -> Card | None:
+        if not game.can_play_land() or not any(c.is_land for c in game.hand):
+            return None
+        landfall = [c for c in self._candidates(game) if c.tags.get("landfall") and c.is_permanent]
+        for card in sorted(landfall, key=lambda c: -c.cmc):
+            if game.can_cast(card):
+                return card
+        return None
