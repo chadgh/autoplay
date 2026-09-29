@@ -1,0 +1,25 @@
+[project]
+name = "autoplay"
+version = "0.1.0"
+description = "Goldfish playtest simulator for MTG Commander decks"
+requires-python = ">=3.12"
+dependencies = ["pyyaml>=6", "jinja2>=3"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+autoplay = "autoplay.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["autoplay*"]
+
+[tool.setuptools.package-data]
+autoplay = ["templates/*.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

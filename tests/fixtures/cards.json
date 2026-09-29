@@ -1,0 +1,857 @@
+[
+ {
+  "name": "Sol Ring",
+  "mana_cost": "{1}",
+  "cmc": 1.0,
+  "type_line": "Artifact",
+  "oracle_text": "{T}: Add {C}{C}.",
+  "colors": [],
+  "color_identity": [],
+  "keywords": [],
+  "produced_mana": [
+   "C"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Llanowar Elves",
+  "mana_cost": "{G}",
+  "cmc": 1.0,
+  "type_line": "Creature \u2014 Elf Druid",
+  "oracle_text": "{T}: Add {G}.",
+  "colors": [
+   "G"
+  ],
+  "color_identity": [
+   "G"
+  ],
+  "power": "1",
+  "toughness": "1",
+  "keywords": [],
+  "produced_mana": [
+   "G"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Cultivate",
+  "mana_cost": "{2}{G}",
+  "cmc": 3.0,
+  "type_line": "Sorcery",
+  "oracle_text": "Search your library for up to two basic land cards, reveal those cards, put one onto the battlefield tapped and the other into your hand, then shuffle.",
+  "colors": [
+   "G"
+  ],
+  "color_identity": [
+   "G"
+  ],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Rampant Growth",
+  "mana_cost": "{1}{G}",
+  "cmc": 2.0,
+  "type_line": "Sorcery",
+  "oracle_text": "Search your library for a basic land card, put that card onto the battlefield tapped, then shuffle.",
+  "colors": [
+   "G"
+  ],
+  "color_identity": [
+   "G"
+  ],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Harmonize",
+  "mana_cost": "{2}{G}{G}",
+  "cmc": 4.0,
+  "type_line": "Sorcery",
+  "oracle_text": "Draw three cards.",
+  "colors": [
+   "G"
+  ],
+  "color_identity": [
+   "G"
+  ],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Lightning Bolt",
+  "mana_cost": "{R}",
+  "cmc": 1.0,
+  "type_line": "Instant",
+  "oracle_text": "Lightning Bolt deals 3 damage to any target.",
+  "colors": [
+   "R"
+  ],
+  "color_identity": [
+   "R"
+  ],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Blood Artist",
+  "mana_cost": "{1}{B}",
+  "cmc": 2.0,
+  "type_line": "Creature \u2014 Vampire",
+  "oracle_text": "Whenever this creature or another creature dies, target player loses 1 life and you gain 1 life.",
+  "colors": [
+   "B"
+  ],
+  "color_identity": [
+   "B"
+  ],
+  "power": "0",
+  "toughness": "1",
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Command Tower",
+  "mana_cost": "",
+  "cmc": 0.0,
+  "type_line": "Land",
+  "oracle_text": "{T}: Add one mana of any color in your commander's color identity.",
+  "colors": [],
+  "color_identity": [],
+  "keywords": [],
+  "produced_mana": [
+   "B",
+   "G",
+   "R",
+   "U",
+   "W"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Arcane Signet",
+  "mana_cost": "{2}",
+  "cmc": 2.0,
+  "type_line": "Artifact",
+  "oracle_text": "{T}: Add one mana of any color in your commander's color identity.",
+  "colors": [],
+  "color_identity": [],
+  "keywords": [],
+  "produced_mana": [
+   "B",
+   "G",
+   "R",
+   "U",
+   "W"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Evolving Wilds",
+  "mana_cost": "",
+  "cmc": 0.0,
+  "type_line": "Land",
+  "oracle_text": "{T}, Sacrifice this land: Search your library for a basic land card, put it onto the battlefield tapped, then shuffle.",
+  "colors": [],
+  "color_identity": [],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Windswept Heath",
+  "mana_cost": "",
+  "cmc": 0.0,
+  "type_line": "Land",
+  "oracle_text": "{T}, Pay 1 life, Sacrifice this land: Search your library for a Forest or Plains card, put it onto the battlefield, then shuffle.",
+  "colors": [],
+  "color_identity": [],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Breeding Pool",
+  "mana_cost": "",
+  "cmc": 0.0,
+  "type_line": "Land \u2014 Forest Island",
+  "oracle_text": "({T}: Add {G} or {U}.)\nAs this land enters, you may pay 2 life. If you don't, it enters tapped.",
+  "colors": [],
+  "color_identity": [
+   "G",
+   "U"
+  ],
+  "keywords": [],
+  "produced_mana": [
+   "G",
+   "U"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Forest",
+  "mana_cost": "",
+  "cmc": 0.0,
+  "type_line": "Basic Land \u2014 Forest",
+  "oracle_text": "({T}: Add {G}.)",
+  "colors": [],
+  "color_identity": [
+   "G"
+  ],
+  "keywords": [],
+  "produced_mana": [
+   "G"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Island",
+  "mana_cost": "",
+  "cmc": 0.0,
+  "type_line": "Basic Land \u2014 Island",
+  "oracle_text": "({T}: Add {U}.)",
+  "colors": [],
+  "color_identity": [
+   "U"
+  ],
+  "keywords": [],
+  "produced_mana": [
+   "U"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Mountain",
+  "mana_cost": "",
+  "cmc": 0.0,
+  "type_line": "Basic Land \u2014 Mountain",
+  "oracle_text": "({T}: Add {R}.)",
+  "colors": [],
+  "color_identity": [
+   "R"
+  ],
+  "keywords": [],
+  "produced_mana": [
+   "R"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Plains",
+  "mana_cost": "",
+  "cmc": 0.0,
+  "type_line": "Basic Land \u2014 Plains",
+  "oracle_text": "({T}: Add {W}.)",
+  "colors": [],
+  "color_identity": [
+   "W"
+  ],
+  "keywords": [],
+  "produced_mana": [
+   "W"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Swamp",
+  "mana_cost": "",
+  "cmc": 0.0,
+  "type_line": "Basic Land \u2014 Swamp",
+  "oracle_text": "({T}: Add {B}.)",
+  "colors": [],
+  "color_identity": [
+   "B"
+  ],
+  "keywords": [],
+  "produced_mana": [
+   "B"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Wood Elves",
+  "mana_cost": "{2}{G}",
+  "cmc": 3.0,
+  "type_line": "Creature \u2014 Elf Scout",
+  "oracle_text": "When this creature enters, search your library for a Forest card, put that card onto the battlefield, then shuffle.",
+  "colors": [
+   "G"
+  ],
+  "color_identity": [
+   "G"
+  ],
+  "power": "1",
+  "toughness": "1",
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Kodama's Reach",
+  "mana_cost": "{2}{G}",
+  "cmc": 3.0,
+  "type_line": "Sorcery \u2014 Arcane",
+  "oracle_text": "Search your library for up to two basic land cards, reveal those cards, put one onto the battlefield tapped and the other into your hand, then shuffle.",
+  "colors": [
+   "G"
+  ],
+  "color_identity": [
+   "G"
+  ],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Phyrexian Arena",
+  "mana_cost": "{1}{B}{B}",
+  "cmc": 3.0,
+  "type_line": "Enchantment",
+  "oracle_text": "At the beginning of your upkeep, you draw a card and lose 1 life.",
+  "colors": [
+   "B"
+  ],
+  "color_identity": [
+   "B"
+  ],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Demonic Tutor",
+  "mana_cost": "{1}{B}",
+  "cmc": 2.0,
+  "type_line": "Sorcery",
+  "oracle_text": "Search your library for a card, put that card into your hand, then shuffle.",
+  "colors": [
+   "B"
+  ],
+  "color_identity": [
+   "B"
+  ],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Swords to Plowshares",
+  "mana_cost": "{W}",
+  "cmc": 1.0,
+  "type_line": "Instant",
+  "oracle_text": "Exile target creature. Its controller gains life equal to its power.",
+  "colors": [
+   "W"
+  ],
+  "color_identity": [
+   "W"
+  ],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Wrath of God",
+  "mana_cost": "{2}{W}{W}",
+  "cmc": 4.0,
+  "type_line": "Sorcery",
+  "oracle_text": "Destroy all creatures. They can't be regenerated.",
+  "colors": [
+   "W"
+  ],
+  "color_identity": [
+   "W"
+  ],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Counterspell",
+  "mana_cost": "{U}{U}",
+  "cmc": 2.0,
+  "type_line": "Instant",
+  "oracle_text": "Counter target spell.",
+  "colors": [
+   "U"
+  ],
+  "color_identity": [
+   "U"
+  ],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Grizzly Bears",
+  "mana_cost": "{1}{G}",
+  "cmc": 2.0,
+  "type_line": "Creature \u2014 Bear",
+  "oracle_text": "",
+  "colors": [
+   "G"
+  ],
+  "color_identity": [
+   "G"
+  ],
+  "power": "2",
+  "toughness": "2",
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Goblin Guide",
+  "mana_cost": "{R}",
+  "cmc": 1.0,
+  "type_line": "Creature \u2014 Goblin Scout",
+  "oracle_text": "Haste\nWhenever this creature attacks, defending player reveals the top card of their library. If it's a land card, that player puts it into their hand.",
+  "colors": [
+   "R"
+  ],
+  "color_identity": [
+   "R"
+  ],
+  "power": "2",
+  "toughness": "2",
+  "keywords": [
+   "Haste"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Kenrith, the Returned King",
+  "mana_cost": "{4}{W}",
+  "cmc": 5.0,
+  "type_line": "Legendary Creature \u2014 Human Noble",
+  "oracle_text": "{R}: All creatures gain trample and haste until end of turn.\n{1}{G}: Put a +1/+1 counter on target creature.\n{2}{W}: Target player gains 5 life.\n{3}{U}: Target player draws a card.\n{4}{B}: Put target creature card from a graveyard onto the battlefield under its owner's control.",
+  "colors": [
+   "W"
+  ],
+  "color_identity": [
+   "B",
+   "G",
+   "R",
+   "U",
+   "W"
+  ],
+  "power": "5",
+  "toughness": "5",
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Simic Growth Chamber",
+  "mana_cost": "",
+  "cmc": 0.0,
+  "type_line": "Land",
+  "oracle_text": "This land enters tapped.\nWhen this land enters, return a land you control to its owner's hand.\n{T}: Add {G}{U}.",
+  "colors": [],
+  "color_identity": [
+   "G",
+   "U"
+  ],
+  "keywords": [],
+  "produced_mana": [
+   "G",
+   "U"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Talisman of Curiosity",
+  "mana_cost": "{2}",
+  "cmc": 2.0,
+  "type_line": "Artifact",
+  "oracle_text": "{T}: Add {C}.\n{T}: Add {G} or {U}. This artifact deals 1 damage to you.",
+  "colors": [],
+  "color_identity": [
+   "G",
+   "U"
+  ],
+  "keywords": [],
+  "produced_mana": [
+   "C",
+   "G",
+   "U"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Temple of Mystery",
+  "mana_cost": "",
+  "cmc": 0.0,
+  "type_line": "Land",
+  "oracle_text": "This land enters tapped.\nWhen this land enters, scry 1. (Look at the top card of your library. You may put that card on the bottom.)\n{T}: Add {G} or {U}.",
+  "colors": [],
+  "color_identity": [
+   "G",
+   "U"
+  ],
+  "keywords": [
+   "Scry"
+  ],
+  "produced_mana": [
+   "G",
+   "U"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Exsanguinate",
+  "mana_cost": "{X}{B}{B}",
+  "cmc": 2.0,
+  "type_line": "Sorcery",
+  "oracle_text": "Each opponent loses X life. You gain life equal to the life lost this way.",
+  "colors": [
+   "B"
+  ],
+  "color_identity": [
+   "B"
+  ],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Kolaghan's Command",
+  "mana_cost": "{1}{B}{R}",
+  "cmc": 3.0,
+  "type_line": "Instant",
+  "oracle_text": "Choose two \u2014\n\u2022 Return target creature card from your graveyard to your hand.\n\u2022 Target player discards a card.\n\u2022 Destroy target artifact.\n\u2022 Kolaghan's Command deals 2 damage to any target.",
+  "colors": [
+   "B",
+   "R"
+  ],
+  "color_identity": [
+   "B",
+   "R"
+  ],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Delver of Secrets // Insectile Aberration",
+  "cmc": 1.0,
+  "type_line": "Creature \u2014 Human Wizard // Creature \u2014 Human Insect",
+  "color_identity": [
+   "U"
+  ],
+  "keywords": [
+   "Flying",
+   "Transform"
+  ],
+  "card_faces": [
+   {
+    "name": "Delver of Secrets",
+    "mana_cost": "{U}",
+    "type_line": "Creature \u2014 Human Wizard",
+    "oracle_text": "At the beginning of your upkeep, look at the top card of your library. You may reveal that card. If an instant or sorcery card is revealed this way, transform this creature.",
+    "power": "1",
+    "toughness": "1",
+    "colors": [
+     "U"
+    ]
+   },
+   {
+    "name": "Insectile Aberration",
+    "mana_cost": "",
+    "type_line": "Creature \u2014 Human Insect",
+    "oracle_text": "Flying",
+    "power": "3",
+    "toughness": "2",
+    "colors": [
+     "U"
+    ]
+   }
+  ],
+  "layout": "transform"
+ },
+ {
+  "name": "Birds of Paradise",
+  "mana_cost": "{G}",
+  "cmc": 1.0,
+  "type_line": "Creature \u2014 Bird",
+  "oracle_text": "Flying\n{T}: Add one mana of any color.",
+  "colors": [
+   "G"
+  ],
+  "color_identity": [
+   "G"
+  ],
+  "power": "0",
+  "toughness": "1",
+  "keywords": [
+   "Flying"
+  ],
+  "produced_mana": [
+   "B",
+   "G",
+   "R",
+   "U",
+   "W"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Thassa's Oracle",
+  "mana_cost": "{U}{U}",
+  "cmc": 2.0,
+  "type_line": "Creature \u2014 Merfolk Wizard",
+  "oracle_text": "When this creature enters, look at the top X cards of your library, where X is your devotion to blue. Put up to one of them on top of your library and the rest on the bottom of your library in a random order. If X is greater than or equal to the number of cards in your library, you win the game. (Each {U} in the mana costs of permanents you control counts toward your devotion to blue.)",
+  "colors": [
+   "U"
+  ],
+  "color_identity": [
+   "U"
+  ],
+  "power": "1",
+  "toughness": "3",
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Night's Whisper",
+  "mana_cost": "{1}{B}",
+  "cmc": 2.0,
+  "type_line": "Sorcery",
+  "oracle_text": "You draw two cards and lose 2 life.",
+  "colors": [
+   "B"
+  ],
+  "color_identity": [
+   "B"
+  ],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Explore",
+  "mana_cost": "{1}{G}",
+  "cmc": 2.0,
+  "type_line": "Sorcery",
+  "oracle_text": "You may play an additional land this turn.\nDraw a card.",
+  "colors": [
+   "G"
+  ],
+  "color_identity": [
+   "G"
+  ],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Thornwood Falls",
+  "mana_cost": "",
+  "cmc": 0.0,
+  "type_line": "Land",
+  "oracle_text": "This land enters tapped.\nWhen this land enters, you gain 1 life.\n{T}: Add {G} or {U}.",
+  "colors": [],
+  "color_identity": [
+   "G",
+   "U"
+  ],
+  "keywords": [],
+  "produced_mana": [
+   "G",
+   "U"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Rhystic Study",
+  "mana_cost": "{2}{U}",
+  "cmc": 3.0,
+  "type_line": "Enchantment",
+  "oracle_text": "Whenever an opponent casts a spell, you may draw a card unless that player pays {1}.",
+  "colors": [
+   "U"
+  ],
+  "color_identity": [
+   "U"
+  ],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Solemn Simulacrum",
+  "mana_cost": "{4}",
+  "cmc": 4.0,
+  "type_line": "Artifact Creature \u2014 Golem",
+  "oracle_text": "When this creature enters, you may search your library for a basic land card, put that card onto the battlefield tapped, then shuffle.\nWhen this creature dies, you may draw a card.",
+  "colors": [],
+  "color_identity": [],
+  "power": "2",
+  "toughness": "2",
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Fellwar Stone",
+  "mana_cost": "{2}",
+  "cmc": 2.0,
+  "type_line": "Artifact",
+  "oracle_text": "{T}: Add one mana of any color that a land an opponent controls could produce.",
+  "colors": [],
+  "color_identity": [],
+  "keywords": [],
+  "produced_mana": [
+   "B",
+   "G",
+   "R",
+   "U",
+   "W"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Commander's Sphere",
+  "mana_cost": "{3}",
+  "cmc": 3.0,
+  "type_line": "Artifact",
+  "oracle_text": "{T}: Add one mana of any color in your commander's color identity.\nSacrifice this artifact: Draw a card.",
+  "colors": [],
+  "color_identity": [],
+  "keywords": [],
+  "produced_mana": [
+   "B",
+   "G",
+   "R",
+   "U",
+   "W"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Gray Merchant of Asphodel",
+  "mana_cost": "{3}{B}{B}",
+  "cmc": 5.0,
+  "type_line": "Creature \u2014 Zombie",
+  "oracle_text": "When this creature enters, each opponent loses X life, where X is your devotion to black. You gain life equal to the life lost this way. (Each {B} in the mana costs of permanents you control counts toward your devotion to black.)",
+  "colors": [
+   "B"
+  ],
+  "color_identity": [
+   "B"
+  ],
+  "power": "2",
+  "toughness": "4",
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Shatterskull Smashing // Shatterskull, the Hammer Pass",
+  "cmc": 2.0,
+  "type_line": "Sorcery // Land",
+  "color_identity": [
+   "R"
+  ],
+  "keywords": [],
+  "produced_mana": [
+   "R"
+  ],
+  "card_faces": [
+   {
+    "name": "Shatterskull Smashing",
+    "mana_cost": "{X}{R}{R}",
+    "type_line": "Sorcery",
+    "oracle_text": "Shatterskull Smashing deals X damage divided as you choose among up to two target creatures and/or planeswalkers. If X is 6 or more, Shatterskull Smashing deals twice X damage divided as you choose among them instead.",
+    "colors": [
+     "R"
+    ]
+   },
+   {
+    "name": "Shatterskull, the Hammer Pass",
+    "mana_cost": "",
+    "type_line": "Land",
+    "oracle_text": "As this land enters, you may pay 3 life. If you don't, it enters tapped.\n{T}: Add {R}.",
+    "colors": []
+   }
+  ],
+  "layout": "modal_dfc"
+ },
+ {
+  "name": "Three Visits",
+  "mana_cost": "{1}{G}",
+  "cmc": 2.0,
+  "type_line": "Sorcery",
+  "oracle_text": "Search your library for a Forest card, put it onto the battlefield, then shuffle.",
+  "colors": [
+   "G"
+  ],
+  "color_identity": [
+   "G"
+  ],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Farseek",
+  "mana_cost": "{1}{G}",
+  "cmc": 2.0,
+  "type_line": "Sorcery",
+  "oracle_text": "Search your library for a Plains, Island, Swamp, or Mountain card, put it onto the battlefield tapped, then shuffle.",
+  "colors": [
+   "G"
+  ],
+  "color_identity": [
+   "G"
+  ],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Nature's Lore",
+  "mana_cost": "{1}{G}",
+  "cmc": 2.0,
+  "type_line": "Sorcery",
+  "oracle_text": "Search your library for a Forest card, put that card onto the battlefield, then shuffle.",
+  "colors": [
+   "G"
+  ],
+  "color_identity": [
+   "G"
+  ],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Lotus Petal",
+  "mana_cost": "{0}",
+  "cmc": 0.0,
+  "type_line": "Artifact",
+  "oracle_text": "{T}, Sacrifice this artifact: Add one mana of any color.",
+  "colors": [],
+  "color_identity": [],
+  "keywords": [],
+  "produced_mana": [
+   "B",
+   "G",
+   "R",
+   "U",
+   "W"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Dark Ritual",
+  "mana_cost": "{B}",
+  "cmc": 1.0,
+  "type_line": "Instant",
+  "oracle_text": "Add {B}{B}{B}.",
+  "colors": [
+   "B"
+  ],
+  "color_identity": [
+   "B"
+  ],
+  "keywords": [],
+  "produced_mana": [
+   "B"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Mind Stone",
+  "mana_cost": "{2}",
+  "cmc": 2.0,
+  "type_line": "Artifact",
+  "oracle_text": "{T}: Add {C}.\n{1}, {T}, Sacrifice this artifact: Draw a card.",
+  "colors": [],
+  "color_identity": [],
+  "keywords": [],
+  "produced_mana": [
+   "C"
+  ],
+  "layout": "normal"
+ }
+]
