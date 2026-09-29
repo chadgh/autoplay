@@ -68,3 +68,27 @@ def test_untagged():
     assert not is_untagged(tagged("Grizzly Bears"))
     assert not is_untagged(tagged("Sol Ring"))
     assert not is_untagged(tagged("Forest"))
+
+
+def test_landfall_draw_is_not_one_shot():
+    assert tagged("Aesi, Tyrant of Gyre Strait").tags == {"creature": 1, "extra_land": 1, "landfall_draw": 1, "card_draw": 1}
+    assert tagged("Tatyova, Benthic Druid").tags == {"creature": 1, "landfall_draw": 1, "card_draw": 1}
+
+
+def test_paid_fetch_is_just_a_land():
+    tags = tagged("Myriad Landscape").tags
+    assert "fetch" not in tags and tags["tapped_land"] == 1 and tags["mana"] == 1
+
+
+def test_tutor_restrictions():
+    mystical = tagged("Mystical Tutor")
+    assert mystical.tags == {"tutor": 1, "tutor_top": 1}
+    assert mystical.search_types == frozenset({"instant", "sorcery"})
+    assert tagged("Worldly Tutor").search_types == frozenset({"creature"})
+    assert tagged("Demonic Tutor").search_types == frozenset()
+
+
+def test_held_interaction_is_modeled():
+    assert not is_untagged(tagged("Counterspell"))
+    assert not is_untagged(tagged("Cyclonic Rift"))
+    assert not is_untagged(tagged("Ravenous Chupacabra"))

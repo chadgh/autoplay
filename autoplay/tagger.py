@@ -2,8 +2,8 @@
 
 Tags are {name: int}. Effect tags the engine acts on:
   land, tapped_land, fetch, bounce_land, mana (units per turn), ritual (one-shot units),
-  land_to_bf, land_to_hand, land_bf_tapped, draw, upkeep_draw, burn (one opponent),
-  drain (each opponent), tutor, haste, extra_land, creature
+  land_to_bf, land_to_hand, land_bf_tapped, draw, upkeep_draw, landfall_draw,
+  burn (one opponent), drain (each opponent), tutor, tutor_top, haste, extra_land, creature
 Role tags used only for stats:
   ramp, mana_rock, mana_dork, card_draw, interaction, wipe
 """
@@ -16,9 +16,12 @@ from .cards import Card
 
 NUMBER_WORDS = {"a": 1, "an": 1, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7}
 LAND_TYPES = ("Plains", "Island", "Swamp", "Mountain", "Forest")
+TUTOR_TYPES = ("creature", "instant", "sorcery", "artifact", "enchantment", "planeswalker")
 ROLE_TAGS = {"ramp", "mana_rock", "mana_dork", "card_draw", "interaction", "wipe", "creature", "land"}
 
 _REMINDER_RE = re.compile(r"\([^)]*\)")
+_ABILITY_WORD_RE = re.compile(r"^[A-Z][\w' ]+ — (?=When|At )")  # "Landfall — Whenever ..."
+_LANDFALL_RE = re.compile(r"^Whenever a land (?:you control )?enters")
 _ADD_RE = re.compile(r"Add ((?:\{[^}]+\})+)")
 _ADD_WORDS_RE = re.compile(r"Add (one|two|three) mana")
 _DRAW_RE = re.compile(r"\bdraws? (a|one|two|three|four|five|six|seven) cards?", re.IGNORECASE)
@@ -71,7 +74,9 @@ def tag_card(card: Card, identity: frozenset) -> Card:
         tags["haste"] = 1
 
     for line in lines:
-        # Only one-shot effects are modeled: spells, ETB triggers, and upkeep triggers.
+        line = _ABILITY_WORD_RE.sub("", line)
+        landfall = bool(_LANDFALL_RE.match(line))
+        # One-shot effects are modeled for spells, ETB triggers, and upkeep triggers.
         triggered = line.startswith("Whenever") or (
             line.startswith("When") and "enters" not in line.split(",")[0]
         )
@@ -109,14 +114,19 @@ def tag_card(card: Card, identity: frozenset) -> Card:
                     tags["land_bf_tapped"] = int("battlefield tapped" in rest)
                 else:
                     tags["land_to_hand"] = count
-                if card.is_land and "Sacrifice" in line:
+                if card.is_land and "Sacrifice" in line and _activation_generic(line) == 0:
                     tags["fetch"] = 1
             else:
                 tags["tutor"] = 1
+                card.search_types = frozenset(t for t in TUTOR_TYPES if t in what.lower())
+                if "on top" in rest:
+                    tags["tutor_top"] = 1
 
         # --- card draw
         m = _DRAW_RE.search(line)
-        if m and not triggered and not _is_activated(line, m.start()):
+        if m and landfall:
+            tags["landfall_draw"] = NUMBER_WORDS[m.group(1).lower()]
+        elif m and not triggered and not _is_activated(line, m.start()):
             n = NUMBER_WORDS[m.group(1).lower()]
             tags["upkeep_draw" if upkeep else "draw"] = n
 
@@ -143,7 +153,7 @@ def tag_card(card: Card, identity: frozenset) -> Card:
             tags["mana_dork" if card.is_creature else "mana_rock"] = 1
         if tags.get("mana", 0) > 0 or tags.get("ritual", 0) > 0 or "land_to_bf" in tags or "land_to_hand" in tags:
             tags["ramp"] = 1
-        if "draw" in tags or "upkeep_draw" in tags:
+        if "draw" in tags or "upkeep_draw" in tags or "landfall_draw" in tags:
             tags["card_draw"] = 1
     elif "mana" not in tags and "fetch" not in tags:
         tags["mana"] = 1 if card.produced else 0
@@ -167,6 +177,8 @@ def is_untagged(card: Card) -> bool:
         return False
     if set(card.tags) - ROLE_TAGS:
         return False
+    if card.tags.get("interaction") or card.tags.get("wipe"):
+        return False  # removal is held in a goldfish game, which is what we model
     text = " ".join(_lines(card))
     keyword_only = all(w.strip(" ,").lower() in {k.lower() for k in card.keywords} for w in text.split(",")) if text else True
     return not keyword_only

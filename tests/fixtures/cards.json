@@ -853,5 +853,144 @@
    "C"
   ],
   "layout": "normal"
+ },
+ {
+  "name": "Aesi, Tyrant of Gyre Strait",
+  "mana_cost": "{4}{G}{U}",
+  "cmc": 6.0,
+  "type_line": "Legendary Creature \u2014 Serpent",
+  "oracle_text": "You may play an additional land on each of your turns.\nLandfall \u2014 Whenever a land you control enters, you may draw a card.",
+  "colors": [
+   "G",
+   "U"
+  ],
+  "color_identity": [
+   "G",
+   "U"
+  ],
+  "power": "5",
+  "toughness": "5",
+  "keywords": [
+   "Landfall"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Tatyova, Benthic Druid",
+  "mana_cost": "{3}{G}{U}",
+  "cmc": 5.0,
+  "type_line": "Legendary Creature \u2014 Merfolk Druid",
+  "oracle_text": "Landfall \u2014 Whenever a land you control enters, you gain 1 life and draw a card.",
+  "colors": [
+   "G",
+   "U"
+  ],
+  "color_identity": [
+   "G",
+   "U"
+  ],
+  "power": "3",
+  "toughness": "3",
+  "keywords": [
+   "Landfall"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Myriad Landscape",
+  "mana_cost": "",
+  "cmc": 0.0,
+  "type_line": "Land",
+  "oracle_text": "This land enters tapped.\n{T}: Add {C}.\n{2}, {T}, Sacrifice this land: Search your library for up to two basic land cards that share a land type, put them onto the battlefield tapped, then shuffle.",
+  "colors": [],
+  "color_identity": [],
+  "keywords": [],
+  "produced_mana": [
+   "C"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Mystical Tutor",
+  "mana_cost": "{U}",
+  "cmc": 1.0,
+  "type_line": "Instant",
+  "oracle_text": "Search your library for an instant or sorcery card, reveal it, then shuffle and put that card on top.",
+  "colors": [
+   "U"
+  ],
+  "color_identity": [
+   "U"
+  ],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Worldly Tutor",
+  "mana_cost": "{G}",
+  "cmc": 1.0,
+  "type_line": "Instant",
+  "oracle_text": "Search your library for a creature card, reveal it, then shuffle and put the card on top.",
+  "colors": [
+   "G"
+  ],
+  "color_identity": [
+   "G"
+  ],
+  "keywords": [],
+  "layout": "normal"
+ },
+ {
+  "name": "Craterhoof Behemoth",
+  "mana_cost": "{5}{G}{G}{G}",
+  "cmc": 8.0,
+  "type_line": "Creature \u2014 Beast",
+  "oracle_text": "Haste\nWhen this creature enters, creatures you control gain trample and get +X/+X until end of turn, where X is the number of creatures you control.",
+  "colors": [
+   "G"
+  ],
+  "color_identity": [
+   "G"
+  ],
+  "power": "5",
+  "toughness": "5",
+  "keywords": [
+   "Haste"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Cyclonic Rift",
+  "mana_cost": "{1}{U}",
+  "cmc": 2.0,
+  "type_line": "Instant",
+  "oracle_text": "Return target nonland permanent you don't control to its owner's hand.\nOverload {6}{U} (You may cast this spell for its overload cost. If you do, change \"target\" in its text to \"each.\")",
+  "colors": [
+   "U"
+  ],
+  "color_identity": [
+   "U"
+  ],
+  "keywords": [
+   "Overload"
+  ],
+  "layout": "normal"
+ },
+ {
+  "name": "Ravenous Chupacabra",
+  "mana_cost": "{2}{B}{B}",
+  "cmc": 4.0,
+  "type_line": "Creature \u2014 Beast Horror",
+  "oracle_text": "When this creature enters, destroy target creature an opponent controls.",
+  "colors": [
+   "B"
+  ],
+  "color_identity": [
+   "B"
+  ],
+  "power": "2",
+  "toughness": "2",
+  "keywords": [],
+  "layout": "normal"
  }
 ]

@@ -143,6 +143,9 @@ class Game:
         self.battlefield.append(Permanent(card, tapped=tapped))
         if not tapped and card.tags.get("mana"):
             self._add_units(card, card.tags["mana"])
+        for p in self.battlefield:
+            if p.card.tags.get("landfall_draw"):
+                self.draw(p.card.tags["landfall_draw"])
 
     def cast(self, card: Card) -> None:
         cost = self.cost_of(card)
@@ -178,11 +181,16 @@ class Game:
         if t.get("land_to_bf") or t.get("land_to_hand"):
             self._search_lands(card)
         if t.get("tutor"):
-            target = self.pilot.choose_tutor(self)
+            found = [c for c in self.library if _tutorable(c, card.search_types)]
+            target = self.pilot.choose_tutor(self, found)
             if target is not None:
                 self.library.remove(target)
-                self._to_hand(target)
             self.shuffle_library(self.config.search_shuffle)
+            if target is not None:
+                if t.get("tutor_top"):
+                    self.library.insert(0, target)
+                else:
+                    self._to_hand(target)
         if t.get("draw"):
             self.draw(t["draw"])
         self._deal(t.get("burn", 0), t.get("drain", 0))
@@ -278,3 +286,7 @@ class Game:
         }
         return [c for name in self.config.gather_order for c in piles[name]]
 
+
+
+def _tutorable(card: Card, types: frozenset) -> bool:
+    return not types or any(t in card.type_line.lower() for t in types)

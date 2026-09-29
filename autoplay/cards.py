@@ -26,6 +26,7 @@ class Card:
     power: int = 0
     keywords: frozenset = frozenset()
     produced: frozenset = frozenset()
+    color_identity: frozenset = frozenset()
     is_commander: bool = False
     key: bool = False
     tags: dict[str, int] = field(default_factory=dict)
@@ -93,6 +94,7 @@ def card_from_scryfall(data: dict) -> Card:
         power=_int_or_zero(face.get("power", data.get("power"))),
         keywords=frozenset(data.get("keywords", [])),
         produced=frozenset(data.get("produced_mana", [])),
+        color_identity=frozenset(data.get("color_identity", [])),
     )
 
 
@@ -100,7 +102,7 @@ def card_from_scryfall(data: dict) -> Card:
 
 _LINE_RE = re.compile(r"^(\d+)\s*x?\s+(.+?)\s*$", re.IGNORECASE)
 _SECTION_RE = re.compile(r"^(?://\s*)?([A-Za-z ]+?):?\s*(?:\(\d+\))?$")
-_SKIP_SECTIONS = {"sideboard", "maybeboard", "considering", "tokens"}
+_SKIP_SECTIONS = {"sideboard", "maybeboard", "considering", "tokens", "outside the game"}
 
 
 @dataclass

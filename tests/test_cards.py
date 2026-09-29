@@ -75,3 +75,21 @@ def test_fetch_uses_cache(tmp_path):
 def test_fetch_reports_missing(tmp_path):
     with pytest.raises(LookupError, match="Nope"):
         fetch_card_data(["Nope"], tmp_path / "c.json", lambda n: {"data": [], "not_found": [{"name": "Nope"}]})
+
+
+def test_parse_commander_section_after_deck_and_outside_the_game():
+    text = """1 Sol Ring
+15 Plains
+
+// Commander
+1 Bruna, Light of Alabaster
+
+// Outside the Game
+1 Pacifism
+"""
+    entries = parse_decklist(text)
+    assert [(e.name, e.count, e.commander) for e in entries] == [
+        ("Sol Ring", 1, False),
+        ("Plains", 15, False),
+        ("Bruna, Light of Alabaster", 1, True),
+    ]

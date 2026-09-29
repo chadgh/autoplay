@@ -1,0 +1,6 @@
+# Per-deck overrides for examples/aesi.txt (picked up automatically as <deck>.yaml).
+key_cards: [Craterhoof Behemoth, Avenger of Zendikar, Field of the Dead]
+cards:
+  # Opponent-dependent draw: estimate ~1 extra card per turn cycle at a 4-player table.
+  Rhystic Study: {add: [upkeep_draw:1]}
+  Mystic Remora: {add: [upkeep_draw:1]}

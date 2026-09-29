@@ -18,7 +18,7 @@ class Pilot(Protocol):
     def main_phase(self, game: "Game") -> None: ...
     def discard(self, game: "Game", n: int) -> list[Card]: ...
     def choose_search_land(self, game: "Game", candidates: list[Card]) -> Card: ...
-    def choose_tutor(self, game: "Game") -> Card | None: ...
+    def choose_tutor(self, game: "Game", candidates: list[Card]) -> Card | None: ...
     def choose_bounce(self, game: "Game", lands: list["Permanent"]) -> "Permanent": ...
 
 
@@ -148,12 +148,12 @@ class GreedyPilot:
         needed = self._needed_colors(game)
         return max(candidates, key=lambda c: (len(c.mana_colors & needed), not c.tags.get("tapped_land"), len(c.mana_colors)))
 
-    def choose_tutor(self, game: "Game") -> Card | None:
+    def choose_tutor(self, game: "Game", candidates: list[Card]) -> Card | None:
         owned = {c.name for c in game.hand} | {p.card.name for p in game.battlefield}
-        keys = [c for c in game.library if c.key and c.name not in owned]
+        keys = [c for c in candidates if c.key and c.name not in owned]
         if keys:
             return keys[0]
-        spells = [c for c in game.library if not c.is_land]
+        spells = [c for c in candidates if not c.is_land]
         if not spells:
             return None
         if len(game.lands()) < 5:

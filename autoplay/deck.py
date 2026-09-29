@@ -20,6 +20,10 @@ class Deck:
     def untagged(self) -> list[str]:
         return sorted({c.name for c in self.library + self.commanders if is_untagged(c)})
 
+    def off_identity(self) -> list[str]:
+        """Cards outside the commander's color identity (illegal, and likely uncastable)."""
+        return sorted({c.name for c in self.library if not c.color_identity <= self.identity})
+
     def key_cards(self) -> list[str]:
         return sorted({c.name for c in self.library if c.key})
 

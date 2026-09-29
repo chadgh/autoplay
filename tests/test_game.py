@@ -110,3 +110,22 @@ def test_full_game_records_every_turn():
     g = game(lib, turns=6)
     rec = g.play()
     assert len(rec.lands) == 6 and len(rec.damage) == 6
+
+
+def test_landfall_draw():
+    g = game(cards(*FILLER))
+    (tatyova, forest) = cards("Tatyova, Benthic Druid", "Forest")
+    g._resolve(tatyova)
+    g._enter_land(forest, tapped=False)
+    assert len(g.hand) == 1
+
+
+def test_tutor_to_top_respects_type():
+    lib = cards("Island", "Mystical Tutor", "Island", "Island", "Island", "Island", "Island",
+                *(["Grizzly Bears"] * 10), "Lightning Bolt", "Thassa's Oracle", *FILLER)
+    for c in lib:
+        c.key = c.name in ("Lightning Bolt", "Thassa's Oracle")
+    g = game(lib)
+    g.start()
+    g.take_turn()  # Island, Mystical Tutor -> Bolt (instant) on top, not Oracle (creature)
+    assert g.library[0].name == "Lightning Bolt"
