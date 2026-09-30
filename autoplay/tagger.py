@@ -24,6 +24,9 @@ _REMINDER_RE = re.compile(r"\([^)]*\)")
 _ABILITY_WORD_RE = re.compile(r"^[A-Z][\w' ]+ — (?=When|At )")  # "Landfall — Whenever ..."
 _LANDFALL_RE = re.compile(r"^Whenever a land (?:you control )?enters")
 _ADD_RE = re.compile(r"Add ((?:\{[^}]+\})+)")
+_UNLESS_RE = re.compile(
+    r"enters(?: the battlefield)? tapped unless you control (a|an|one|two|three|four|five) (?:or more )?(?:other )?([^.]+)\."
+)
 _ADD_WORDS_RE = re.compile(r"Add (one|two|three) mana")
 _DRAW_RE = re.compile(r"\bdraws? (a|one|two|three|four|five|six|seven) cards?", re.IGNORECASE)
 _LOOT_RE = re.compile(r"\bdraws? (?:a|one|two|three|four|five|six|seven) cards?, then discards? (a|one|two|three|four|five|six|seven) cards?", re.IGNORECASE)
@@ -102,6 +105,16 @@ def tag_card(card: Card, identity: frozenset) -> Card:
         # --- enters tapped
         if card.is_land and re.search(r"enters(?: the battlefield)? tapped\.", line) and "If you don't" not in line:
             tags["tapped_land"] = 1
+        m = _UNLESS_RE.search(line)
+        if card.is_land and m:
+            # "unless you have two or more opponents" etc. don't match: those enter untapped in Commander.
+            what = m.group(2)
+            types = {"basic"} if "basic land" in what else {t for t in LAND_TYPES if t in what}
+            if not types and re.fullmatch(r"lands?", what):
+                types = {"land"}
+            if types:
+                tags["tapped_land"] = 1
+                card.untapped_if = (NUMBER_WORDS[m.group(1)], frozenset(types))
         if "return a land you control to its owner's hand" in line:
             tags["bounce_land"] = 1
 

@@ -33,6 +33,7 @@ class Card:
     tags: dict[str, int] = field(default_factory=dict)
     mana_colors: frozenset = frozenset()  # what each mana unit this card makes can be spent as
     search_types: frozenset = frozenset()  # land subtypes a land-search may find ("basic" = any basic)
+    untapped_if: tuple = ()  # (n, types): a tapped_land enters untapped if you control n lands matching types
     scryfall_uri: str = ""
     image_uri: str = ""
     cost: Cost = field(init=False)

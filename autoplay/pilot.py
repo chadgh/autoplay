@@ -87,7 +87,7 @@ class GreedyPilot:
         score = 10 * len(colors & self._needed_colors(game))
         if land.tags.get("bounce_land") and not game.lands():
             return -100
-        if land.tags.get("tapped_land"):
+        if game.enters_tapped(land):
             # Tapped lands are best on turns where the extra mana wouldn't be used.
             score += 0 if self._untapped_unlocks(game, land) else 3
         else:
@@ -146,7 +146,7 @@ class GreedyPilot:
 
     def choose_search_land(self, game: "Game", candidates: list[Card]) -> Card:
         needed = self._needed_colors(game)
-        return max(candidates, key=lambda c: (len(c.mana_colors & needed), not c.tags.get("tapped_land"), len(c.mana_colors)))
+        return max(candidates, key=lambda c: (len(c.mana_colors & needed), not game.enters_tapped(c), len(c.mana_colors)))
 
     def choose_tutor(self, game: "Game", candidates: list[Card]) -> Card | None:
         owned = {c.name for c in game.hand} | {p.card.name for p in game.battlefield}

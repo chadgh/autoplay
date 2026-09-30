@@ -104,6 +104,15 @@ class Game:
     def lands(self) -> list[Permanent]:
         return [p for p in self.battlefield if p.card.is_land]
 
+    def enters_tapped(self, land: Card) -> bool:
+        """Whether a land would enter tapped right now ("tapped unless you control ..." included)."""
+        if not land.tags.get("tapped_land"):
+            return False
+        if not land.untapped_if:
+            return True
+        n, types = land.untapped_if
+        return sum(matches_search(p.card, types) for p in self.lands()) < n
+
     def source_colors(self) -> frozenset:
         return frozenset().union(*(p.card.mana_colors for p in self.battlefield if p.card.tags.get("mana")))
 
@@ -156,7 +165,7 @@ class Game:
             self.graveyard.append(card)
             self._search_lands(card)
             return
-        self._enter_land(card, tapped=bool(card.tags.get("tapped_land")))
+        self._enter_land(card, tapped=self.enters_tapped(card))
         if card.tags.get("bounce_land"):
             others = [p for p in self.lands() if p.card is not card]
             if others:
@@ -237,7 +246,7 @@ class Game:
                 self.library.remove(choice)
                 self.record.note("searched", {"card": choice.name, "to": "battlefield" if dest == "bf" else "hand"})
                 if dest == "bf":
-                    self._enter_land(choice, tapped=bool(t.get("land_bf_tapped") or choice.tags.get("tapped_land")))
+                    self._enter_land(choice, tapped=bool(t.get("land_bf_tapped")) or self.enters_tapped(choice))
                 else:
                     self._to_hand(choice)
         self.shuffle_library(self.config.search_shuffle)

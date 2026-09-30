@@ -208,3 +208,16 @@ def test_loot_spell_discards_after_drawing():
     loot = Card("Loot", type_line="Sorcery", tags={"draw": 2, "discard": 2})
     g._resolve(loot)
     assert g.hand == [] and len(g.graveyard) == 3  # Loot + two discards
+
+
+def test_tapped_unless_basic_land():
+    palace = Card("Fire Nation Palace", type_line="Land",
+                  oracle="This land enters tapped unless you control a basic land.\n{T}: Add {R}.", produced=frozenset("R"))
+    tag_card(palace, WUBRG)
+    g = game(cards(*FILLER))
+    (temple,) = cards("Temple of Mystery")
+    g._enter_land(temple, tapped=True)
+    assert g.enters_tapped(palace)
+    (forest,) = cards("Forest")
+    g._enter_land(forest, tapped=False)
+    assert not g.enters_tapped(palace)

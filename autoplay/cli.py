@@ -114,6 +114,9 @@ def cmd_tags(args) -> int:
         roles = sorted(k for k in card.tags if k in ROLE_TAGS)
         tag_str = ", ".join(f"{k}:{v}" if v != 1 else k for k, v in effects.items())
         flag = " [UNMODELED]" if is_untagged(card) else ""
+        if card.untapped_if:
+            n, types = card.untapped_if
+            tag_str = tag_str.replace("tapped_land", f"tapped_land(unless {n}+ {'/'.join(sorted(types))})")
         key = " [KEY]" if card.key else ""
         cmd = " [COMMANDER]" if card.is_commander else ""
         colors = "".join(sorted(card.mana_colors)) if card.tags.get("mana") or card.tags.get("ritual") else ""

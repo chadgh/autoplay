@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from autoplay.cards import card_from_scryfall
+from autoplay.cards import Card, card_from_scryfall
 from autoplay.tagger import is_untagged, tag_card
 
 FIXTURE = {c["name"].split(" // ")[0]: c for c in json.loads((Path(__file__).parent / "fixtures" / "cards.json").read_text())}
@@ -102,3 +102,25 @@ def test_loot_spell():
     card = card_from_scryfall({"name": "Loot", "type_line": "Sorcery", "mana_cost": "{R}", "cmc": 1,
                                "oracle_text": "Draw two cards, then discard two cards."})
     assert tag_card(card, GU).tags == {"draw": 2, "discard": 2, "card_draw": 1}
+
+
+@pytest.mark.parametrize(
+    "text, untapped_if",
+    [
+        ("This land enters tapped unless you control a basic land.", (1, frozenset({"basic"}))),
+        ("This land enters tapped unless you control two or more basic lands.", (2, frozenset({"basic"}))),
+        ("This land enters tapped unless you control two or more other lands.", (2, frozenset({"land"}))),
+        ("This land enters tapped unless you control a Forest or an Island.", (1, frozenset({"Forest", "Island"}))),
+        ("This land enters tapped unless you control three or more other Plains.", (3, frozenset({"Plains"}))),
+    ],
+)
+def test_conditional_tapped_lands(text, untapped_if):
+    card = tag_card(Card("Test Land", type_line="Land", oracle=text + "\n{T}: Add {G}.", produced=frozenset("G")), GU)
+    assert card.tags == {"land": 1, "mana": 1, "tapped_land": 1}
+    assert card.untapped_if == untapped_if
+
+
+def test_opponent_count_condition_enters_untapped():
+    text = "This land enters tapped unless you have two or more opponents.\n{T}: Add {G}."
+    card = tag_card(Card("Test Land", type_line="Land", oracle=text, produced=frozenset("G")), GU)
+    assert "tapped_land" not in card.tags
