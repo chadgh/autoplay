@@ -137,3 +137,21 @@ def test_first_game_log_accounts_for_every_card(result):
         assert len(hand) == t["hand_size"]
         assert t["lands"] >= 0 and t["spent"] <= t["mana"]
     assert sum(len(t["drawn"]) for t in g["turns"]) >= 8  # at least one draw per turn
+
+
+def test_decklist_printing_sets_image_and_link_only():
+    text = "Commander\n1 Kenrith, the Returned King\nDeck\n2 Sol Ring (CMM) 400\n1 Forest\n"
+    printing = {**DATA["sol ring"], "image_uris": {"normal": "https://img/cmm-400.jpg"},
+                "scryfall_uri": "https://scryfall.com/card/cmm/400/sol-ring?utm_source=api", "oracle_text": "changed"}
+    deck = build_deck("t", parse_decklist(text), DATA, Overrides(), printings={("cmm", "400"): printing})
+    rings = [c for c in deck.library if c.name == "Sol Ring"]
+    assert len(rings) == 2 and all(c.image_uri == "https://img/cmm-400.jpg" for c in rings)
+    assert rings[0].scryfall_uri == "https://scryfall.com/card/cmm/400/sol-ring"
+    assert rings[0].oracle == DATA["sol ring"]["oracle_text"]  # game data still comes from the name lookup
+
+
+def test_decklist_printing_of_another_card_is_ignored():
+    text = "Commander\n1 Kenrith, the Returned King\nDeck\n1 Sol Ring (CMM) 400\n"
+    wrong = {**DATA["forest"], "image_uris": {"normal": "https://img/forest.jpg"}}
+    deck = build_deck("t", parse_decklist(text), DATA, Overrides(), printings={("cmm", "400"): wrong})
+    assert deck.library[0].image_uri != "https://img/forest.jpg"

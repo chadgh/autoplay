@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from autoplay.cards import card_from_scryfall, fetch_card_data, parse_decklist
+from autoplay.cards import card_from_scryfall, fetch_card_data, fetch_printings, parse_decklist
 
 FIXTURE = json.loads((Path(__file__).parent / "fixtures" / "cards.json").read_text())
 
@@ -107,3 +107,30 @@ def test_card_from_scryfall_image_uses_played_face():
     mdfc = by_name("Shatterskull Smashing")
     mdfc = {**mdfc, "card_faces": [{**f, "image_uris": img(f"face{i}")} for i, f in enumerate(mdfc["card_faces"])]}
     assert card_from_scryfall(mdfc).image_uri.endswith("face1.jpg")  # the land face
+
+
+def test_parse_keeps_printing():
+    entries = parse_decklist(
+        "1 Sol Ring (CMM) 400 *F*\n1x Arcane Signet (m3c) 283★ [Ramp]\n1 Forest\n"
+    )
+    assert [(e.name, e.printing) for e in entries] == [
+        ("Sol Ring", ("cmm", "400")),
+        ("Arcane Signet", ("m3c", "283★")),
+        ("Forest", None),
+    ]
+
+
+def test_fetch_printings_uses_cache_and_skips_missing(tmp_path):
+    calls = []
+    ring = {**by_name("Sol Ring"), "set": "cmm", "collector_number": "400"}
+
+    def fake_fetch(idents):
+        calls.append(idents)
+        return {"data": [ring], "not_found": [{"set": "xxx", "collector_number": "1"}]}
+
+    cache = tmp_path / "printings.json"
+    wanted = [("cmm", "400"), ("xxx", "1")]
+    first = fetch_printings(wanted, cache, fake_fetch)
+    again = fetch_printings(wanted[:1], cache, fake_fetch)
+    assert first == again == {("cmm", "400"): ring}
+    assert calls == [[{"set": "cmm", "collector_number": "400"}, {"set": "xxx", "collector_number": "1"}]]

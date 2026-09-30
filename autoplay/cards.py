@@ -14,6 +14,7 @@ from .mana import Cost, parse_cost
 
 SCRYFALL_COLLECTION = "https://api.scryfall.com/cards/collection"
 CACHE_PATH = Path(os.environ.get("AUTOPLAY_CACHE", Path.home() / ".cache" / "autoplay")) / "cards.json"
+PRINTINGS_PATH = CACHE_PATH.parent / "printings.json"
 
 
 @dataclass(eq=False)
@@ -114,13 +115,21 @@ class DeckEntry:
     name: str
     count: int
     commander: bool = False
+    printing: tuple[str, str] | None = None  # (set code, collector number), for the card image
 
 
-def _clean_name(raw: str) -> tuple[str, bool]:
+_PRINTING_RE = re.compile(r"\s\(([A-Za-z0-9]{2,6})\)\s*(\S*)\s*$")  # "(SET) 123"
+
+
+def _clean_name(raw: str) -> tuple[str, bool, tuple[str, str] | None]:
     commander = "*CMDR*" in raw or bool(re.search(r"\[[^\]]*commander", raw, re.IGNORECASE))
-    name = re.sub(r"\[.*?\]|\^.*?\^|\*[A-Z]+\*", "", raw)
-    name = re.sub(r"\s\([A-Za-z0-9]{2,6}\)\s*[\w-]*\s*$", "", name.strip())  # "(SET) 123"
-    return name.strip(), commander
+    name = re.sub(r"\[.*?\]|\^.*?\^|\*[A-Z]+\*", "", raw).strip()
+    printing = None
+    if m := _PRINTING_RE.search(name):
+        name = name[: m.start()]
+        if m.group(2):
+            printing = (m.group(1).lower(), m.group(2))
+    return name.strip(), commander, printing
 
 
 def parse_decklist(text: str) -> list[DeckEntry]:
@@ -140,8 +149,8 @@ def parse_decklist(text: str) -> list[DeckEntry]:
             continue
         if section in _SKIP_SECTIONS:
             continue
-        name, flagged = _clean_name(m.group(2))
-        entries.append(DeckEntry(name, int(m.group(1)), flagged or section == "commander"))
+        name, flagged, printing = _clean_name(m.group(2))
+        entries.append(DeckEntry(name, int(m.group(1)), flagged or section == "commander", printing))
     return entries
 
 
@@ -154,8 +163,8 @@ def _load_cache(path: Path) -> dict:
         return {}
 
 
-def _post_collection(names: list[str]) -> dict:
-    body = json.dumps({"identifiers": [{"name": n} for n in names]}).encode()
+def _post_identifiers(identifiers: list[dict]) -> dict:
+    body = json.dumps({"identifiers": identifiers}).encode()
     req = urllib.request.Request(
         SCRYFALL_COLLECTION,
         data=body,
@@ -163,6 +172,10 @@ def _post_collection(names: list[str]) -> dict:
     )
     with urllib.request.urlopen(req, timeout=30) as resp:
         return json.load(resp)
+
+
+def _post_collection(names: list[str]) -> dict:
+    return _post_identifiers([{"name": n} for n in names])
 
 
 def fetch_card_data(names: list[str], cache_path: Path = CACHE_PATH, fetch=_post_collection) -> dict[str, dict]:
@@ -183,3 +196,21 @@ def fetch_card_data(names: list[str], cache_path: Path = CACHE_PATH, fetch=_post
     if not_found:
         raise LookupError(f"cards not found on Scryfall: {', '.join(not_found)}")
     return {n.lower(): cache[n.lower()] for n in names}
+
+
+def fetch_printings(printings, cache_path: Path = PRINTINGS_PATH, fetch=_post_identifiers) -> dict[tuple, dict]:
+    """Return {(set, collector number): scryfall json} for specific printings. These only
+    supply art and links, so printings Scryfall can't find are skipped, not an error."""
+    cache = _load_cache(cache_path)
+    missing = sorted({f"{s}/{n}" for s, n in printings} - cache.keys())
+    for i in range(0, len(missing), 75):
+        batch = missing[i : i + 75]
+        cache.update(dict.fromkeys(batch))  # remember misses too, so they aren't re-requested
+        idents = [dict(zip(("set", "collector_number"), k.split("/", 1))) for k in batch]
+        for card in fetch(idents).get("data", []):
+            cache[f"{card['set']}/{card['collector_number']}"] = card
+        time.sleep(0.1)
+    if missing:
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        cache_path.write_text(json.dumps(cache))
+    return {(s, n): cache[f"{s}/{n}"] for s, n in printings if cache.get(f"{s}/{n}")}

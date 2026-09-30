@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .cards import CACHE_PATH, Card, DeckEntry, card_from_scryfall, fetch_card_data, parse_decklist
+from .cards import CACHE_PATH, Card, DeckEntry, card_from_scryfall, fetch_card_data, fetch_printings, parse_decklist
 from .overrides import Overrides, apply_overrides
 from .tagger import is_untagged, tag_card
 from .tagger_api import cached_tags
@@ -30,7 +30,10 @@ class Deck:
         return sorted({c.name for c in self.library if c.key})
 
 
-def build_deck(name: str, entries, card_data: dict[str, dict], ov: Overrides) -> Deck:
+def build_deck(name: str, entries, card_data: dict[str, dict], ov: Overrides, printings: dict | None = None) -> Deck:
+    """`printings` maps (set, collector number) to Scryfall json for printings named in the
+    decklist; they only change a card's image and link, never its game data."""
+    printings = printings or {}
     commander_names = {n.lower() for n in ov.commander} | {e.name.lower() for e in entries if e.commander}
     if not commander_names:
         raise ValueError("no commander found: mark it in the decklist or set `commander:` in overrides")
@@ -43,6 +46,11 @@ def build_deck(name: str, entries, card_data: dict[str, dict], ov: Overrides) ->
     library: list[Card] = []
     for e in entries:
         base = tag_card(card_from_scryfall(card_data[e.name.lower()]), identity)
+        printing = printings.get(e.printing)
+        if printing and printing["name"] == base.name:  # a mistyped number could be another card
+            shown = card_from_scryfall(printing)
+            base.image_uri = shown.image_uri or base.image_uri
+            base.scryfall_uri = shown.scryfall_uri or base.scryfall_uri
         for _ in range(e.count):
             card = apply_overrides(base.copy(), ov)
             if e.name.lower() in commander_names:
@@ -63,6 +71,7 @@ def deck_card_data(path: str | Path, ov: Overrides, cache_path: Path = CACHE_PAT
 
 def load_deck(path: str | Path, ov: Overrides, cache_path: Path = CACHE_PATH, fetch=None) -> Deck:
     entries, data = deck_card_data(path, ov, cache_path, fetch)
-    deck = build_deck(Path(path).stem, entries, data, ov)
+    printings = fetch_printings([e.printing for e in entries if e.printing], cache_path.parent / "printings.json")
+    deck = build_deck(Path(path).stem, entries, data, ov, printings)
     deck.scryfall_tags = cached_tags(data, cache_path.parent / "tags.json")
     return deck
