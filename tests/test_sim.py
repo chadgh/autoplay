@@ -114,6 +114,16 @@ def test_search_shuffle_is_configurable(deck):
         simulate(deck, n=1, turns=1, baseline=False, search_shuffle="shimmy")
 
 
+def test_keep_lands_range_is_configurable(deck):
+    loose = simulate(deck, n=200, turns=1, seed=1, baseline=False, keep_lands=(0, 7))
+    strict = simulate(deck, n=200, turns=1, seed=1, baseline=False, keep_lands=(3, 4))
+    assert loose["settings"]["keep_lands"] == [0, 7]
+    assert loose["human"]["mulligans"]["rate"] == 0
+    assert strict["human"]["mulligans"]["rate"] > 0
+    with pytest.raises(ValueError):
+        simulate(deck, n=1, turns=1, baseline=False, keep_lands=(5, 2))
+
+
 def test_deck_identity_is_in_wubrg_order(deck):
     r = simulate(deck, n=1, turns=1, seed=1, baseline=False)
     assert r["deck"]["identity"] == ["W", "U", "B", "R", "G"]  # Kenrith

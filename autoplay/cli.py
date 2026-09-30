@@ -18,6 +18,18 @@ DEFAULT_SHUFFLE = "mash x3, riffle x2, cut"
 DEFAULT_SEARCH_SHUFFLE = "mash x2, cut"
 
 
+def _land_range(text: str) -> tuple[int, int]:
+    """Parse "MIN-MAX" (or a single number) as an inclusive opening-hand land range."""
+    try:
+        lo, _, hi = text.partition("-")
+        rng = (int(lo), int(hi or lo))
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"expected MIN-MAX, e.g. 2-5, got {text!r}")
+    if not 0 <= rng[0] <= rng[1] <= 7:
+        raise argparse.ArgumentTypeError(f"need 0 <= MIN <= MAX <= 7, got {text!r}")
+    return rng
+
+
 def _add_deck_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("deck", help="decklist text file (Moxfield / Archidekt export)")
     p.add_argument("--overrides", "-o", help="YAML overrides (key cards, tag fixes); defaults to <deck>.yaml if present")
@@ -42,6 +54,7 @@ def cmd_run(args) -> int:
     result = simulate(
         deck, n=args.games, turns=args.turns, shuffle=args.shuffle, search_shuffle=args.search_shuffle, seed=args.seed,
         baseline=not args.no_baseline, draw_first_turn=not args.skip_first_draw, pilot=args.pilot,
+        keep_lands=args.keep_lands,
     )
     _print_summary(result)
     if args.json:
@@ -60,7 +73,7 @@ def _print_summary(r: dict) -> None:
     d = r["deck"]
     print(f"{d['name']}: {' + '.join(d['commanders'])}  ({d['size']} cards, {d['lands']} lands)")
     print(f"{r['settings']['games']} games x {r['settings']['turns']} turns, shuffle: {r['settings']['shuffle']}, "
-          f"search shuffle: {r['settings']['search_shuffle']}\n")
+          f"search shuffle: {r['settings']['search_shuffle']}, keep {'-'.join(map(str, r['settings']['keep_lands']))} lands\n")
 
     def row(label, hv, bv=None):
         print(f"  {label:<34}{hv:>10}" + (f"{bv:>12}" if bv is not None else ""))
@@ -143,6 +156,8 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--seed", type=int)
     run.add_argument("--pilot", choices=sorted(PILOTS), default="greedy",
                      help="play strategy; 'landfall' casts landfall cards before the turn's land drop")
+    run.add_argument("--keep-lands", type=_land_range, default=(2, 5), metavar="MIN-MAX",
+                     help="mulligan opening hands with fewer than MIN or more than MAX lands (default: 2-5)")
     run.add_argument("--no-baseline", action="store_true", help="skip the perfectly-random comparison run")
     run.add_argument("--skip-first-draw", action="store_true", help="skip the turn-1 draw (1v1 rules)")
     run.add_argument("--out", default="report.html", help="HTML report path ('' to skip)")

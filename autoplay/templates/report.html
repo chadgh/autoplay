@@ -233,6 +233,7 @@ R.deck.commanders.forEach((n) => {
 });
 document.getElementById("settings").textContent =
   `${R.settings.games.toLocaleString()} games × ${T} turns · shuffle: ${R.settings.shuffle} · search shuffle: ${R.settings.search_shuffle}` +
+  (R.settings.keep_lands ? ` · keep ${R.settings.keep_lands.join("–")} lands` : "") +
   (R.settings.seed != null ? ` · seed ${R.settings.seed}` : "") + (B ? " · compared against a perfectly random shuffle" : "");
 
 function tile(label, value, cmp) {
