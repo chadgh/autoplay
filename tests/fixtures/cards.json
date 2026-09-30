@@ -992,5 +992,22 @@
   "toughness": "2",
   "keywords": [],
   "layout": "normal"
+ },
+ {
+  "name": "Gran-Gran",
+  "mana_cost": "{U}",
+  "cmc": 1.0,
+  "type_line": "Legendary Creature \u2014 Human Peasant Ally",
+  "oracle_text": "Whenever Gran-Gran becomes tapped, draw a card, then discard a card.\nNoncreature spells you cast cost {1} less to cast as long as there are three or more Lesson cards in your graveyard.",
+  "colors": [
+   "U"
+  ],
+  "color_identity": [
+   "U"
+  ],
+  "power": "1",
+  "toughness": "2",
+  "keywords": [],
+  "layout": "normal"
  }
 ]

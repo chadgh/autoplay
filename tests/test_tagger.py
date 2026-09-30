@@ -92,3 +92,13 @@ def test_held_interaction_is_modeled():
     assert not is_untagged(tagged("Counterspell"))
     assert not is_untagged(tagged("Cyclonic Rift"))
     assert not is_untagged(tagged("Ravenous Chupacabra"))
+
+
+def test_tap_draw():
+    assert tagged("Gran-Gran").tags == {"creature": 1, "tap_draw": 1, "discard": 1, "card_draw": 1}
+
+
+def test_loot_spell():
+    card = card_from_scryfall({"name": "Loot", "type_line": "Sorcery", "mana_cost": "{R}", "cmc": 1,
+                               "oracle_text": "Draw two cards, then discard two cards."})
+    assert tag_card(card, GU).tags == {"draw": 2, "discard": 2, "card_draw": 1}

@@ -116,6 +116,14 @@ class Game:
         self.hand.append(card)
         self.record.see(card, self.turn)
 
+    def _tap(self, p: Permanent) -> None:
+        """Tap a permanent, firing "becomes tapped" triggers (entering tapped doesn't count)."""
+        if p.tapped:
+            return
+        p.tapped = True
+        if p.card.tags.get("tap_draw"):
+            self._draw_for(p.card, p.card.tags["tap_draw"])
+
     def draw(self, n: int = 1) -> None:
         for _ in range(n):
             if not self.library:
@@ -123,6 +131,18 @@ class Game:
             card = self.library.pop(0)
             self._to_hand(card)
             self.record.note("drawn", card.name)
+
+    def _draw_for(self, source: Card, n: int) -> None:
+        """Draw for one of `source`'s effects, then discard if it loots."""
+        self.draw(n)
+        if source.tags.get("discard"):
+            self.discard(source.tags["discard"])
+
+    def discard(self, n: int) -> None:
+        for card in self.pilot.discard(self, n):
+            self.hand.remove(card)
+            self.graveyard.append(card)
+            self.record.note("discarded", card.name)
 
     # ------------------------------------------------------------ actions
 
@@ -145,12 +165,14 @@ class Game:
                 self.hand.append(back.card)
 
     def _enter_land(self, card: Card, tapped: bool) -> None:
-        self.battlefield.append(Permanent(card, tapped=tapped))
+        p = Permanent(card, tapped=tapped)
+        self.battlefield.append(p)
         if not tapped and card.tags.get("mana"):
+            self._tap(p)
             self._add_units(card, card.tags["mana"])
         for p in self.battlefield:
             if p.card.tags.get("landfall_draw"):
-                self.draw(p.card.tags["landfall_draw"])
+                self._draw_for(p.card, p.card.tags["landfall_draw"])
 
     def cast(self, card: Card) -> None:
         cost = self.cost_of(card)
@@ -175,8 +197,10 @@ class Game:
             self.graveyard.append(card)
         elif card.is_permanent:
             sick = card.is_creature and not t.get("haste")
-            self.battlefield.append(Permanent(card, sick=sick))
+            p = Permanent(card, sick=sick)
+            self.battlefield.append(p)
             if t.get("mana") and not card.is_creature:
+                self._tap(p)
                 self._add_units(card, t["mana"])
             if t.get("extra_land"):
                 self.land_drops += t["extra_land"]
@@ -199,7 +223,7 @@ class Game:
                     self._to_hand(target)
                 self.record.note("searched", {"card": target.name, "to": "library top" if t.get("tutor_top") else "hand"})
         if t.get("draw"):
-            self.draw(t["draw"])
+            self._draw_for(card, t["draw"])
         self._deal(t.get("burn", 0), t.get("drain", 0))
 
     def _search_lands(self, card: Card) -> None:
@@ -235,13 +259,14 @@ class Game:
             p.tapped = p.sick = False
         for p in self.battlefield:
             if p.card.tags.get("upkeep_draw"):
-                self.draw(p.card.tags["upkeep_draw"])
+                self._draw_for(p.card, p.card.tags["upkeep_draw"])
         if self.turn > 1 or self.config.draw_first_turn:
             self.draw()
 
         self.pool, self.turn_units = [], []
         for p in self.battlefield:
             if p.card.tags.get("mana") and not p.tapped and not p.sick:
+                self._tap(p)
                 self._add_units(p.card, p.card.tags["mana"])
 
         self.pilot.main_phase(self)
@@ -249,15 +274,14 @@ class Game:
 
         excess = len(self.hand) - 7
         if excess > 0:
-            for card in self.pilot.discard(self, excess):
-                self.hand.remove(card)
-                self.graveyard.append(card)
-                self.record.note("discarded", card.name)
+            self.discard(excess)
         self._record_turn()
 
     def _combat(self) -> None:
         for p in self.battlefield:
             if p.card.is_creature and not p.sick and p.card.power > 0:
+                if "Vigilance" not in p.card.keywords:
+                    self._tap(p)
                 self._deal(p.card.power, 0, p.card.power if p.card.is_commander else 0)
 
     def _record_turn(self) -> None:

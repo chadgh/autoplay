@@ -112,7 +112,7 @@ class GreedyPilot:
             return (4, 0)
         if _is_ramp(card):
             return (0, card.cmc)
-        if card.tags.get("draw") or card.tags.get("upkeep_draw"):
+        if card.tags.get("draw") or card.tags.get("upkeep_draw") or card.tags.get("tap_draw"):
             return (1, card.cmc)
         if card.is_commander:
             return (2, 0)

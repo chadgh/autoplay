@@ -3,7 +3,7 @@ import random
 from pathlib import Path
 
 from autoplay.cards import Card, card_from_scryfall
-from autoplay.game import Game, GameConfig
+from autoplay.game import Game, GameConfig, Permanent
 from autoplay.pilot import GreedyPilot, LandfallPilot
 from autoplay.shuffle import parse_routine
 from autoplay.stats import GameRecord
@@ -165,3 +165,46 @@ def test_record_opening_hand_sorts_spells_then_lands():
                            Card("Small", cmc=1, type_line="Instant", tags={"interaction": 1})])
     assert rec.opening_hand == ["Small", "Big", "Forest"]
     assert rec.opening_profile == {"cards": 3, "lands": 1, "ramp": 0, "card_draw": 0, "interaction": 1, "spell_mv": 3}
+
+
+def test_tap_draw_on_attack():
+    g = game(cards(*FILLER))
+    (gran,) = cards("Gran-Gran")
+    g.battlefield.append(Permanent(gran))
+    g._combat()
+    g._combat()  # already tapped: no second trigger
+    assert len(g.library) == len(FILLER) - 1
+
+
+def test_tap_draw_not_on_vigilance_attack():
+    g = game(cards(*FILLER))
+    (gran,) = cards("Gran-Gran")
+    gran.keywords = frozenset({"Vigilance"})
+    g.battlefield.append(Permanent(gran))
+    g._combat()
+    assert g.hand == []
+
+
+def test_tap_draw_when_tapped_for_mana_but_not_entering_tapped():
+    g = game(cards(*FILLER))
+    (land,) = cards("Forest")
+    land.tags["tap_draw"] = 1
+    g._enter_land(land, tapped=True)
+    assert g.hand == []
+    g.take_turn()  # untaps, draws for turn, then taps the land for mana
+    assert len(g.hand) == 2
+
+
+def test_tap_draw_loots():
+    g = game(cards(*FILLER))
+    (gran,) = cards("Gran-Gran")
+    g.battlefield.append(Permanent(gran))
+    g._combat()
+    assert g.hand == [] and [c.name for c in g.graveyard] == ["Grizzly Bears"]
+
+
+def test_loot_spell_discards_after_drawing():
+    g = game(cards(*FILLER))
+    loot = Card("Loot", type_line="Sorcery", tags={"draw": 2, "discard": 2})
+    g._resolve(loot)
+    assert g.hand == [] and len(g.graveyard) == 3  # Loot + two discards

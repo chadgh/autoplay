@@ -2,7 +2,8 @@
 
 Tags are {name: int}. Effect tags the engine acts on:
   land, tapped_land, fetch, bounce_land, mana (units per turn), ritual (one-shot units),
-  land_to_bf, land_to_hand, land_bf_tapped, draw, upkeep_draw, landfall_draw,
+  land_to_bf, land_to_hand, land_bf_tapped, draw, upkeep_draw, landfall_draw, tap_draw,
+  discard (after each of this card's draws: looting),
   burn (one opponent), drain (each opponent), tutor, tutor_top, haste, extra_land, creature
 Role tags used only for stats and pilot decisions:
   ramp, mana_rock, mana_dork, card_draw, interaction, wipe, landfall
@@ -25,6 +26,7 @@ _LANDFALL_RE = re.compile(r"^Whenever a land (?:you control )?enters")
 _ADD_RE = re.compile(r"Add ((?:\{[^}]+\})+)")
 _ADD_WORDS_RE = re.compile(r"Add (one|two|three) mana")
 _DRAW_RE = re.compile(r"\bdraws? (a|one|two|three|four|five|six|seven) cards?", re.IGNORECASE)
+_LOOT_RE = re.compile(r"\bdraws? (?:a|one|two|three|four|five|six|seven) cards?, then discards? (a|one|two|three|four|five|six|seven) cards?", re.IGNORECASE)
 _SEARCH_RE = re.compile(
     r"[Ss]earch your library for (?:up to )?(a|an|one|two|three)?\s*(.+?) cards?\b(.*)", re.DOTALL
 )
@@ -64,6 +66,8 @@ def tag_card(card: Card, identity: frozenset) -> Card:
     tags: dict[str, int] = {}
     lines = _lines(card)
     text = " ".join(lines)
+    front = card.name.split(" // ")[0]
+    self_ref = rf"(?:{re.escape(front)}|{re.escape(front.split(',')[0])}|this \w+)"
     allowed = identity | {"C"}
 
     if card.is_land:
@@ -83,6 +87,7 @@ def tag_card(card: Card, identity: frozenset) -> Card:
             line.startswith("When") and "enters" not in line.split(",")[0]
         )
         upkeep = line.startswith("At the beginning of your upkeep")
+        on_tap = bool(re.match(rf"Whenever {self_ref} becomes tapped", line))
 
         # --- mana abilities
         if "Add " in line and not triggered:
@@ -128,9 +133,16 @@ def tag_card(card: Card, identity: frozenset) -> Card:
         m = _DRAW_RE.search(line)
         if m and landfall:
             tags["landfall_draw"] = NUMBER_WORDS[m.group(1).lower()]
+        elif m and on_tap:
+            tags["tap_draw"] = NUMBER_WORDS[m.group(1).lower()]
         elif m and not triggered and not _is_activated(line, m.start()):
             n = NUMBER_WORDS[m.group(1).lower()]
             tags["upkeep_draw" if upkeep else "draw"] = n
+        else:
+            m = None
+        loot = m and _LOOT_RE.search(line)
+        if loot:
+            tags["discard"] = NUMBER_WORDS[loot.group(1).lower()]
 
         # --- damage / life loss
         if not triggered and not upkeep:
@@ -155,7 +167,7 @@ def tag_card(card: Card, identity: frozenset) -> Card:
             tags["mana_dork" if card.is_creature else "mana_rock"] = 1
         if tags.get("mana", 0) > 0 or tags.get("ritual", 0) > 0 or "land_to_bf" in tags or "land_to_hand" in tags:
             tags["ramp"] = 1
-        if "draw" in tags or "upkeep_draw" in tags or "landfall_draw" in tags:
+        if "draw" in tags or "upkeep_draw" in tags or "landfall_draw" in tags or "tap_draw" in tags:
             tags["card_draw"] = 1
     elif "mana" not in tags and "fetch" not in tags:
         tags["mana"] = 1 if card.produced else 0
